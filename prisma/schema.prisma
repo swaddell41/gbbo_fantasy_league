@@ -1,0 +1,207 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = "file:./dev.db"
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String?
+  password  String
+  isAdmin   Boolean  @default(false)
+  mustChangePassword Boolean @default(false)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  picks     Pick[]
+  sessions  Session[]
+  accounts  Account[]
+  scores    UserScore[]
+
+  @@map("users")
+}
+
+model Account {
+  id                String  @id @default(cuid())
+  userId            String
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+  @@map("accounts")
+}
+
+model Session {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("sessions")
+}
+
+model Season {
+  id          String   @id @default(cuid())
+  name        String
+  year        Int
+  isActive    Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  contestants Contestant[]
+  episodes    Episode[]
+  picks       Pick[]
+  scores      UserScore[]
+
+  @@map("seasons")
+}
+
+model Contestant {
+  id          String   @id @default(cuid())
+  name        String
+  imageUrl    String?
+  bio         String?
+  seasonId    String
+  isEliminated Boolean @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  picks       Pick[]
+  starBakerEpisodes Episode[] @relation("EpisodeStarBaker")
+  eliminatedEpisodes Episode[] @relation("EpisodeEliminated")
+  technicalChallengeWins Episode[] @relation("EpisodeTechnicalWinner")
+  handshakes  EpisodeHandshake[]
+  soggyBottoms EpisodeSoggyBottom[]
+
+  @@map("contestants")
+}
+
+model Episode {
+  id          String   @id @default(cuid())
+  title       String
+  episodeNumber Int
+  seasonId    String
+  airDate     DateTime
+  isActive    Boolean  @default(false)
+  starBakerId String?
+  eliminatedId String?
+  isCompleted Boolean  @default(false)
+  technicalChallengeWinnerId String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relations
+  season      Season   @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+  picks       Pick[]
+  starBaker   Contestant? @relation("EpisodeStarBaker", fields: [starBakerId], references: [id])
+  eliminated  Contestant? @relation("EpisodeEliminated", fields: [eliminatedId], references: [id])
+  technicalChallengeWinner Contestant? @relation("EpisodeTechnicalWinner", fields: [technicalChallengeWinnerId], references: [id])
+  handshakes  EpisodeHandshake[]
+  soggyBottoms EpisodeSoggyBottom[]
+
+  @@map("episodes")
+}
+
+model Pick {
+  id           String   @id @default(cuid())
+  userId       String
+  contestantId String
+  episodeId    String?
+  seasonId     String
+  pickType     PickType
+  points       Int      @default(0)
+  isCorrect    Boolean?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  // Relations
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  contestant   Contestant   @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+  episode      Episode?     @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  season       Season       @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, episodeId, pickType])
+  @@map("picks")
+}
+
+model UserScore {
+  id        String   @id @default(cuid())
+  userId    String
+  seasonId  String
+  totalScore Int    @default(0)
+  weeklyScore Int   @default(0)
+  finalistScore Int @default(0)
+  correctStarBaker Int @default(0)
+  correctElimination Int @default(0)
+  wrongStarBaker Int @default(0)
+  wrongElimination Int @default(0)
+  totalEpisodes Int @default(0)
+  technicalChallengeWins Int @default(0)
+  handshakes Int @default(0)
+  soggyBottoms Int @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  season    Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, seasonId])
+  @@map("user_scores")
+}
+
+model EpisodeHandshake {
+  id          String   @id @default(cuid())
+  episodeId   String
+  contestantId String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  episode     Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  contestant  Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, contestantId])
+  @@map("episode_handshakes")
+}
+
+model EpisodeSoggyBottom {
+  id          String   @id @default(cuid())
+  episodeId   String
+  contestantId String
+  createdAt   DateTime @default(now())
+
+  // Relations
+  episode     Episode @relation(fields: [episodeId], references: [id], onDelete: Cascade)
+  contestant  Contestant @relation(fields: [contestantId], references: [id], onDelete: Cascade)
+
+  @@unique([episodeId, contestantId])
+  @@map("episode_soggy_bottoms")
+}
+
+enum PickType {
+  FINALIST
+  STAR_BAKER
+  ELIMINATION
+}

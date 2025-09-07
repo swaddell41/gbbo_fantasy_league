@@ -1,0 +1,66 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/prisma'
+
+export async function GET(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { searchParams } = new URL(request.url)
+    const seasonId = searchParams.get('seasonId')
+    
+    if (!seasonId) {
+      return NextResponse.json({ error: 'Season ID is required' }, { status: 400 })
+    }
+
+    // Get all user scores for this season, excluding admin users, ordered by total score
+    const leaderboard = await prisma.userScore.findMany({
+      where: { 
+        seasonId,
+        user: {
+          isAdmin: false
+        }
+      },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            email: true,
+            isAdmin: true
+          }
+        }
+      },
+      orderBy: { totalScore: 'desc' }
+    })
+
+    // Add rank to each entry
+    const rankedLeaderboard = leaderboard.map((entry, index) => ({
+      rank: index + 1,
+      userId: entry.user.id,
+      userName: entry.user.name,
+      userEmail: entry.user.email,
+      totalScore: entry.totalScore,
+      weeklyScore: entry.weeklyScore,
+      finalistScore: entry.finalistScore,
+      correctStarBaker: entry.correctStarBaker,
+      correctElimination: entry.correctElimination,
+      wrongStarBaker: entry.wrongStarBaker,
+      wrongElimination: entry.wrongElimination,
+      totalEpisodes: entry.totalEpisodes,
+      accuracy: entry.totalEpisodes > 0 
+        ? Math.round(((entry.correctStarBaker + entry.correctElimination) / (entry.totalEpisodes * 2)) * 100)
+        : 0
+    }))
+
+    return NextResponse.json(rankedLeaderboard)
+
+  } catch (error) {
+    console.error('Error fetching leaderboard:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
