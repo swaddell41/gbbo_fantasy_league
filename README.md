@@ -4,10 +4,15 @@ A fantasy league app for The Great British Bake Off where friends can pick their
 
 ## Features
 
-- **User Authentication**: Secure login/registration system
-- **Admin Dashboard**: Manage seasons, contestants, and episodes
+- **User Authentication**: Secure login/registration system with password reset functionality
+- **Admin Dashboard**: Complete management system for seasons, contestants, episodes, and users
+- **Fantasy League Gameplay**: 
+  - Pick 3 finalists at the start of the season
+  - Weekly picks for Star Baker and Elimination
+  - Comprehensive scoring system with bonus points
 - **Contestant Management**: Add and manage baker profiles with photos and bios
-- **Season Management**: Create and organize different GBBO seasons
+- **Episode Management**: Create and manage episodes with results tracking
+- **User Management**: Admin can reset passwords and manage user accounts
 - **Responsive Design**: Beautiful UI that works on all devices
 
 ## Getting Started
@@ -15,25 +20,27 @@ A fantasy league app for The Great British Bake Off where friends can pick their
 ### Prerequisites
 
 - Node.js 18+ 
-- PostgreSQL database
+- SQLite database (or PostgreSQL for production)
 - npm or yarn
 
 ### Installation
 
 1. **Clone and install dependencies:**
    ```bash
-   cd gbbo_app
+   git clone https://github.com/swaddell41/gbbo_fantasy_league.git
+   cd gbbo_fantasy_league
    npm install
    ```
 
-2. **Set up your database:**
-   - Create a PostgreSQL database
+2. **Set up your environment:**
+   - Copy `.env.example` to `.env`
    - Update the `DATABASE_URL` in `.env` with your database credentials
    - Generate a secure `NEXTAUTH_SECRET` for authentication
 
 3. **Run database migrations:**
    ```bash
    npx prisma migrate dev --name init
+   npx prisma generate
    ```
 
 4. **Create your admin user:**
@@ -62,13 +69,19 @@ A fantasy league app for The Great British Bake Off where friends can pick their
    - Add a new season (e.g., "Season 14", 2024)
 
 2. **Add Contestants:**
-   - Go to Admin Dashboard → Manage Contestants
+   - Go to Admin Dashboard → Contestant Management
    - Select your season
    - Add each contestant with their name, photo, and bio
 
 3. **Set Up Episodes:**
-   - Go to Admin Dashboard → Manage Episodes
+   - Go to Admin Dashboard → Episode Management
    - Create weekly episodes for the season
+   - Mark episodes as completed and set results
+
+4. **Manage Users:**
+   - Go to Admin Dashboard → User Management
+   - Reset passwords for users
+   - Delete user accounts if needed
 
 ### For Players
 
@@ -77,8 +90,25 @@ A fantasy league app for The Great British Bake Off where friends can pick their
    - You'll be redirected to your dashboard
 
 2. **Make Picks:**
-   - Once episodes are available, make your weekly predictions
-   - Earn points for correct predictions
+   - Pick your 3 finalists at the start of the season
+   - Make weekly picks for Star Baker and Elimination
+   - View your current standings on the leaderboard
+
+## Scoring System
+
+### Weekly Picks
+- **Star Baker correct**: +3 points
+- **Elimination correct**: +2 points
+- **Star Baker wrong (eliminated)**: -3 points
+- **Elimination wrong (Star Baker)**: -3 points
+
+### Bonus Points (for picked Star Baker)
+- **Technical Challenge win**: +1 point
+- **Paul Hollywood handshake**: +1 point
+- **Soggy bottom comment**: -1 point
+
+### Finalist Picks
+- **Correct finalist**: +3 points
 
 ## Project Structure
 
@@ -96,25 +126,22 @@ src/
 └── prisma/               # Database schema and migrations
 ```
 
-## Next Steps
-
-This is the foundation of your GBBO Fantasy League! Future features to add:
-
-- [ ] Episode management system
-- [ ] Weekly pick submission
-- [ ] Scoring system
-- [ ] Leaderboard
-- [ ] Email notifications
-- [ ] Mobile app
-- [ ] Social features
-
 ## Tech Stack
 
 - **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
 - **Backend**: Next.js API routes, Prisma ORM
-- **Database**: PostgreSQL
+- **Database**: SQLite (development) / PostgreSQL (production)
 - **Authentication**: NextAuth.js
 - **Styling**: Tailwind CSS
+
+## Deployment
+
+This app is ready for deployment on Vercel:
+
+1. **Connect to GitHub**: Push your code to GitHub
+2. **Deploy on Vercel**: Connect your GitHub repository to Vercel
+3. **Set Environment Variables**: Add your production database URL and NextAuth secret
+4. **Run Migrations**: Deploy and run `npx prisma migrate deploy`
 
 ## Contributing
 
