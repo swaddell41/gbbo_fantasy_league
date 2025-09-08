@@ -4,7 +4,7 @@ This directory is where you should place the contestant images you've extracted 
 
 ## Required Images
 
-Please add the following image files to the `public/contestants/` directory:
+Please add the following image files to the `he configpublic/contestants/` directory:
 
 - `aaron.jpg` - Aaron's photo
 - `hassan.jpg` - Hassan's photo  
