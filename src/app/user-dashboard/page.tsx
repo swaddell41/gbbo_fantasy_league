@@ -386,6 +386,7 @@ function UserDashboardContent() {
                   <WeeklyPicks
                     contestants={contestants}
                     selectedEpisode={selectedEpisode}
+                    seasonId={selectedSeason?.id || ''}
                     onSubmit={handleWeeklyPicksSubmit}
                   />
                 </div>
