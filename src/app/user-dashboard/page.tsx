@@ -5,6 +5,8 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import WeeklyPicks from './weekly-picks'
+import PublicPicks from '@/components/PublicPicks'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
 
 interface Season {
   id: string
@@ -52,6 +54,8 @@ function UserDashboardContent() {
   const [showFinalistPicks, setShowFinalistPicks] = useState(false)
   const [finalistPicks, setFinalistPicks] = useState<string[]>([])
   const [selectedEpisode, setSelectedEpisode] = useState<Episode | null>(null)
+  const [showPublicPicks, setShowPublicPicks] = useState(false)
+  const [allUsersSubmitted, setAllUsersSubmitted] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -69,6 +73,22 @@ function UserDashboardContent() {
 
     fetchSeasons()
   }, [session, status, router])
+
+  // Real-time updates
+  useRealtimeUpdates(selectedSeason?.id || null, (update) => {
+    console.log('Real-time update received:', update)
+    
+    if (update.type === 'picks_updated') {
+      // Refresh picks data
+      if (selectedSeason) {
+        fetchUserPicks(selectedSeason.id)
+        checkAllUsersSubmitted()
+      }
+    } else if (update.type === 'leaderboard_updated') {
+      // Refresh leaderboard if visible
+      // This would trigger a re-fetch of leaderboard data
+    }
+  })
 
   const fetchSeasons = async () => {
     try {
@@ -136,6 +156,25 @@ function UserDashboardContent() {
       }
     } catch (error) {
       console.error('Error fetching user picks:', error)
+    }
+  }
+
+  const checkAllUsersSubmitted = async () => {
+    if (!selectedEpisode) return
+    
+    try {
+      const response = await fetch(`/api/episode-picks-status?episodeId=${selectedEpisode.id}`)
+      if (response.ok) {
+        const data = await response.json()
+        setAllUsersSubmitted(data.allUsersSubmitted)
+        
+        // Show public picks if all users have submitted
+        if (data.allUsersSubmitted) {
+          setShowPublicPicks(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error checking submission status:', error)
     }
   }
 
@@ -239,6 +278,7 @@ function UserDashboardContent() {
     // Refresh picks data
     if (selectedSeason) {
       fetchUserPicks(selectedSeason.id)
+      checkAllUsersSubmitted()
     }
   }
 
@@ -369,6 +409,9 @@ function UserDashboardContent() {
                       onChange={(e) => {
                         const episode = episodes.find(ep => ep.id === e.target.value)
                         setSelectedEpisode(episode || null)
+                        if (episode) {
+                          checkAllUsersSubmitted()
+                        }
                       }}
                       className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
                     >
@@ -388,6 +431,23 @@ function UserDashboardContent() {
                     selectedEpisode={selectedEpisode}
                     seasonId={selectedSeason?.id || ''}
                     onSubmit={handleWeeklyPicksSubmit}
+                  />
+
+                  {/* Public Picks - Show when all users have submitted */}
+                  {showPublicPicks && selectedEpisode && (
+                    <PublicPicks
+                      seasonId={selectedSeason?.id || ''}
+                      episodeId={selectedEpisode.id}
+                      showFinalists={false}
+                      showWeekly={true}
+                    />
+                  )}
+
+                  {/* Finalist Picks - Always visible */}
+                  <PublicPicks
+                    seasonId={selectedSeason?.id || ''}
+                    showFinalists={true}
+                    showWeekly={false}
                   />
                 </div>
               )}

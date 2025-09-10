@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { broadcastToSeason } from '@/app/api/events/route'
 
 export async function GET(request: NextRequest) {
   try {
@@ -128,6 +129,20 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Successfully created picks:', createdPicks.length)
+    
+    // Broadcast update to all connected clients
+    try {
+      broadcastToSeason('picks_updated', {
+        userId: session.user.id,
+        userName: session.user.name,
+        picks: createdPicks,
+        episodeId: picks[0]?.episodeId
+      }, seasonId)
+    } catch (broadcastError) {
+      console.error('Error broadcasting update:', broadcastError)
+      // Don't fail the request if broadcast fails
+    }
+    
     return NextResponse.json(createdPicks, { status: 201 })
   } catch (error) {
     console.error('Error creating user picks:', error)
