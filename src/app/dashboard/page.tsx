@@ -321,11 +321,11 @@ export default function Dashboard() {
                     {/* Detailed stats */}
                     <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
                       <div>
-                        <div className="text-black">Weekly Score</div>
+                        <div className="text-black !important" style={{color: 'black'}}>Weekly Score</div>
                         <div className="font-semibold">{entry.weeklyScore}</div>
                       </div>
                       <div>
-                        <div className="text-black">Accuracy</div>
+                        <div className="text-black !important" style={{color: 'black'}}>Accuracy</div>
                         <div className="font-semibold">{entry.accuracy}%</div>
                       </div>
                       <div>
