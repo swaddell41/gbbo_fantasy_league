@@ -173,28 +173,6 @@ export default function PublicPicks({
               </button>
             </div>
             
-            {/* Finalist Picks */}
-            {showFinalists && userPicks.finalistPicks.length > 0 && (
-              <div className="mb-4">
-                <h5 className="text-sm font-medium text-blue-600 mb-2">Finalist Picks</h5>
-                <div className="flex flex-wrap gap-2">
-                  {userPicks.finalistPicks.map((pick) => (
-                    <div key={pick.id} className="bg-blue-50 px-3 py-2 rounded-lg flex items-center gap-2">
-                      {pick.contestant.imageUrl && (
-                        <img
-                          src={pick.contestant.imageUrl}
-                          alt={pick.contestant.name}
-                          className="w-6 h-6 rounded-full object-cover"
-                        />
-                      )}
-                      <span className="text-sm font-medium text-blue-800">
-                        {pick.contestant.name}
-                      </span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            )}
 
             {/* Weekly Picks */}
             {showWeekly && userPicks.weeklyPicks.length > 0 && (
@@ -228,35 +206,35 @@ export default function PublicPicks({
                   </div>
                 ) : (
                   <div className="space-y-3">
+                    {/* All Picks (including finalist picks from API) */}
                     {pickHistory.get(userPicks.user.id)?.map((episodePicks) => (
-                      <div key={episodePicks.episode.id} className="bg-gray-50 p-3 rounded-lg">
+                      <div key={episodePicks.episode.id} className={`p-3 rounded-lg ${
+                        episodePicks.episode.id === 'finalist' ? 'bg-blue-50' : 'bg-gray-50'
+                      }`}>
                         <div className="flex items-center justify-between mb-2">
-                          <h6 className="font-medium text-gray-800">
-                            Episode {episodePicks.episode.episodeNumber}: {episodePicks.episode.title}
-                          </h6>
-                          <span className={`text-xs px-2 py-1 rounded ${
-                            episodePicks.episode.isCompleted 
-                              ? 'bg-green-100 text-green-800' 
-                              : 'bg-yellow-100 text-yellow-800'
+                          <h6 className={`font-medium ${
+                            episodePicks.episode.id === 'finalist' ? 'text-blue-800' : 'text-gray-800'
                           }`}>
-                            {episodePicks.episode.isCompleted ? 'Completed' : 'Pending'}
-                          </span>
+                            {episodePicks.episode.id === 'finalist' 
+                              ? `🏆 ${episodePicks.episode.title}`
+                              : `Episode ${episodePicks.episode.episodeNumber}: ${episodePicks.episode.title}`
+                            }
+                          </h6>
+                          {episodePicks.episode.id !== 'finalist' && (
+                            <span className={`text-xs px-2 py-1 rounded ${
+                              episodePicks.episode.isCompleted 
+                                ? 'bg-green-100 text-green-800' 
+                                : 'bg-yellow-100 text-yellow-800'
+                            }`}>
+                              {episodePicks.episode.isCompleted ? 'Completed' : 'Pending'}
+                            </span>
+                          )}
                         </div>
-                        <div className="space-y-1">
-                          {episodePicks.picks.map((pick) => (
-                            <div key={pick.id} className="flex items-center gap-2 text-sm">
-                              <span className={`px-2 py-1 rounded text-xs ${
-                                pick.pickType === 'STAR_BAKER' 
-                                  ? 'bg-yellow-100 text-yellow-800' 
-                                  : pick.pickType === 'ELIMINATION'
-                                  ? 'bg-red-100 text-red-800'
-                                  : 'bg-blue-100 text-blue-800'
-                              }`}>
-                                {pick.pickType === 'STAR_BAKER' ? '⭐' : 
-                                 pick.pickType === 'ELIMINATION' ? '❌' : '🏆'} 
-                                {pick.pickType.replace('_', ' ')}
-                              </span>
-                              <div className="flex items-center gap-2">
+                        {episodePicks.episode.id === 'finalist' ? (
+                          // Finalist picks display as grid
+                          <div className="flex flex-wrap gap-2">
+                            {episodePicks.picks.map((pick) => (
+                              <div key={pick.id} className="bg-blue-100 px-3 py-2 rounded-lg flex items-center gap-2">
                                 {pick.contestant.imageUrl && (
                                   <img
                                     src={pick.contestant.imageUrl}
@@ -264,11 +242,42 @@ export default function PublicPicks({
                                     className="w-5 h-5 rounded-full object-cover"
                                   />
                                 )}
-                                <span className="text-gray-700">{pick.contestant.name}</span>
+                                <span className="text-sm font-medium text-blue-800">
+                                  {pick.contestant.name}
+                                </span>
                               </div>
-                            </div>
-                          ))}
-                        </div>
+                            ))}
+                          </div>
+                        ) : (
+                          // Episode picks display as list
+                          <div className="space-y-1">
+                            {episodePicks.picks.map((pick) => (
+                              <div key={pick.id} className="flex items-center gap-2 text-sm">
+                                <span className={`px-2 py-1 rounded text-xs ${
+                                  pick.pickType === 'STAR_BAKER' 
+                                    ? 'bg-yellow-100 text-yellow-800' 
+                                    : pick.pickType === 'ELIMINATION'
+                                    ? 'bg-red-100 text-red-800'
+                                    : 'bg-blue-100 text-blue-800'
+                                }`}>
+                                  {pick.pickType === 'STAR_BAKER' ? '⭐' : 
+                                   pick.pickType === 'ELIMINATION' ? '❌' : '🏆'} 
+                                  {pick.pickType.replace('_', ' ')}
+                                </span>
+                                <div className="flex items-center gap-2">
+                                  {pick.contestant.imageUrl && (
+                                    <img
+                                      src={pick.contestant.imageUrl}
+                                      alt={pick.contestant.name}
+                                      className="w-5 h-5 rounded-full object-cover"
+                                    />
+                                  )}
+                                  <span className="text-gray-700">{pick.contestant.name}</span>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
                       </div>
                     ))}
                     {pickHistory.get(userPicks.user.id)?.length === 0 && (

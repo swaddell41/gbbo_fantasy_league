@@ -398,24 +398,6 @@ export default function Dashboard() {
             </div>
           )}
 
-          {/* Finalist Picks - Always visible */}
-          {activeSeason && (
-            <div className="mt-8">
-              <div className="bg-blue-50 p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-blue-800 mb-4">
-                  🏆 Finalist Picks
-                  <span className="text-sm font-normal text-blue-600 ml-2">
-                    See who everyone thinks will make it to the finale
-                  </span>
-                </h3>
-                <PublicPicks
-                  seasonId={activeSeason.id}
-                  showFinalists={true}
-                  showWeekly={false}
-                />
-              </div>
-            </div>
-          )}
 
           {/* Getting Started - Only show if no leaderboard data */}
           {leaderboard.length === 0 && (

@@ -42,12 +42,16 @@ export async function GET(request: NextRequest) {
         }
       },
       orderBy: [
-        { episode: { episodeNumber: 'asc' } },
-        { pickType: 'asc' }
+        { pickType: 'asc' }, // Finalist picks first
+        { episode: { episodeNumber: 'asc' } }
       ]
     })
 
-    // Group picks by episode
+    // Separate finalist picks from episode picks
+    const finalistPicks = picks.filter(pick => pick.pickType === 'FINALIST')
+    const episodePicks = picks.filter(pick => pick.pickType !== 'FINALIST')
+
+    // Group episode picks by episode
     const picksByEpisode = new Map<string, {
       episode: {
         id: string
@@ -66,7 +70,7 @@ export async function GET(request: NextRequest) {
       }>
     }>()
 
-    picks.forEach(pick => {
+    episodePicks.forEach(pick => {
       const episodeId = pick.episode.id
       if (!picksByEpisode.has(episodeId)) {
         picksByEpisode.set(episodeId, {
@@ -82,9 +86,27 @@ export async function GET(request: NextRequest) {
       })
     })
 
+    // Create finalist picks section
+    const finalistSection = {
+      episode: {
+        id: 'finalist',
+        title: 'Finalist Picks',
+        episodeNumber: 0,
+        isCompleted: true
+      },
+      picks: finalistPicks.map(pick => ({
+        id: pick.id,
+        pickType: pick.pickType,
+        contestant: pick.contestant
+      }))
+    }
+
+    // Combine finalist picks with episode picks
+    const allPicks = finalistPicks.length > 0 ? [finalistSection, ...Array.from(picksByEpisode.values())] : Array.from(picksByEpisode.values())
+
     return NextResponse.json({
       success: true,
-      pickHistory: Array.from(picksByEpisode.values())
+      pickHistory: allPicks
     })
   } catch (error) {
     console.error('Error fetching pick history:', error)

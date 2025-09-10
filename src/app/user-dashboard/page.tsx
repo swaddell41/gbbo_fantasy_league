@@ -469,20 +469,6 @@ function UserDashboardContent() {
                     />
                   )}
 
-                  {/* Finalist Picks Section - Always visible */}
-                  <div className="bg-blue-50 p-6 rounded-lg mb-6">
-                    <h3 className="text-lg font-semibold text-blue-800 mb-4">
-                      🏆 Finalist Picks
-                      <span className="text-sm font-normal text-blue-600 ml-2">
-                        See who everyone thinks will make it to the finale
-                      </span>
-                    </h3>
-                    <PublicPicks
-                      seasonId={selectedSeason?.id || ''}
-                      showFinalists={true}
-                      showWeekly={false}
-                    />
-                  </div>
 
                   {/* Leaderboard */}
                   <Leaderboard seasonId={selectedSeason?.id || ''} />
