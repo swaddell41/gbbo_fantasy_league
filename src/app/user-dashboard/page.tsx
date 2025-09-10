@@ -5,6 +5,7 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import WeeklyPicks from './weekly-picks'
+import Leaderboard from './leaderboard'
 import PublicPicks from '@/components/PublicPicks'
 import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
 
@@ -425,6 +426,31 @@ function UserDashboardContent() {
                     </select>
                   </div>
 
+                  {/* Episode Status */}
+                  {selectedEpisode && (
+                    <div className="bg-amber-50 p-4 rounded-lg mb-6">
+                      <div className="flex items-center justify-between">
+                        <div>
+                          <h4 className="font-semibold text-amber-800">
+                            {selectedEpisode.title} - Episode {selectedEpisode.episodeNumber}
+                          </h4>
+                          <p className="text-sm text-amber-700">
+                            {allUsersSubmitted 
+                              ? '🎉 All players have submitted their picks!' 
+                              : '⏳ Waiting for all players to submit their picks...'
+                            }
+                          </p>
+                        </div>
+                        {allUsersSubmitted && (
+                          <div className="text-right">
+                            <div className="text-2xl">🎉</div>
+                            <div className="text-xs text-amber-600">Ready to watch!</div>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Weekly Picks Component */}
                   <WeeklyPicks
                     contestants={contestants}
@@ -443,12 +469,41 @@ function UserDashboardContent() {
                     />
                   )}
 
-                  {/* Finalist Picks - Always visible */}
-                  <PublicPicks
-                    seasonId={selectedSeason?.id || ''}
-                    showFinalists={true}
-                    showWeekly={false}
-                  />
+                  {/* Finalist Picks Section - Always visible */}
+                  <div className="bg-blue-50 p-6 rounded-lg mb-6">
+                    <h3 className="text-lg font-semibold text-blue-800 mb-4">
+                      🏆 Finalist Picks
+                      <span className="text-sm font-normal text-blue-600 ml-2">
+                        See who everyone thinks will make it to the finale
+                      </span>
+                    </h3>
+                    <PublicPicks
+                      seasonId={selectedSeason?.id || ''}
+                      showFinalists={true}
+                      showWeekly={false}
+                    />
+                  </div>
+
+                  {/* Leaderboard */}
+                  <Leaderboard seasonId={selectedSeason?.id || ''} />
+
+                  {/* Public Picks Section - Show when all users have submitted */}
+                  {showPublicPicks && selectedEpisode && (
+                    <div className="bg-green-50 p-6 rounded-lg mb-6">
+                      <h3 className="text-lg font-semibold text-green-800 mb-4">
+                        🎉 All Picks Are In! 
+                        <span className="text-sm font-normal text-green-600 ml-2">
+                          Here's what everyone picked for {selectedEpisode.title}
+                        </span>
+                      </h3>
+                      <PublicPicks
+                        seasonId={selectedSeason?.id || ''}
+                        episodeId={selectedEpisode.id}
+                        showFinalists={false}
+                        showWeekly={true}
+                      />
+                    </div>
+                  )}
                 </div>
               )}
 
