@@ -15,6 +15,22 @@ interface UserPick {
   contestant: Contestant
 }
 
+interface EpisodePick {
+  id: string
+  pickType: string
+  contestant: Contestant
+}
+
+interface EpisodePicks {
+  episode: {
+    id: string
+    title: string
+    episodeNumber: number
+    isCompleted: boolean
+  }
+  picks: EpisodePick[]
+}
+
 interface UserPicks {
   user: {
     id: string
@@ -40,6 +56,9 @@ export default function PublicPicks({
   const [picks, setPicks] = useState<UserPicks[]>([])
   const [loading, setLoading] = useState(true)
   const [allUsersSubmitted, setAllUsersSubmitted] = useState(false)
+  const [expandedUsers, setExpandedUsers] = useState<Set<string>>(new Set())
+  const [pickHistory, setPickHistory] = useState<Map<string, EpisodePicks[]>>(new Map())
+  const [loadingHistory, setLoadingHistory] = useState<Set<string>>(new Set())
 
   useEffect(() => {
     fetchPicks()
@@ -77,6 +96,39 @@ export default function PublicPicks({
     }
   }
 
+  const fetchPickHistory = async (userId: string) => {
+    if (pickHistory.has(userId)) return // Already loaded
+    
+    setLoadingHistory(prev => new Set(prev).add(userId))
+    
+    try {
+      const response = await fetch(`/api/user/pick-history?userId=${userId}&seasonId=${seasonId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setPickHistory(prev => new Map(prev).set(userId, data.pickHistory))
+      }
+    } catch (error) {
+      console.error('Error fetching pick history:', error)
+    } finally {
+      setLoadingHistory(prev => {
+        const newSet = new Set(prev)
+        newSet.delete(userId)
+        return newSet
+      })
+    }
+  }
+
+  const toggleUserExpansion = (userId: string) => {
+    const newExpanded = new Set(expandedUsers)
+    if (newExpanded.has(userId)) {
+      newExpanded.delete(userId)
+    } else {
+      newExpanded.add(userId)
+      fetchPickHistory(userId)
+    }
+    setExpandedUsers(newExpanded)
+  }
+
   if (loading) {
     return (
       <div className="bg-gray-50 p-6 rounded-lg mb-6">
@@ -105,20 +157,21 @@ export default function PublicPicks({
             </span>
           )}
         </h3>
-        {allUsersSubmitted && episodeId && (
-          <button
-            onClick={() => sendWhatsAppNotification()}
-            className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
-          >
-            📱 Send to WhatsApp
-          </button>
-        )}
       </div>
 
       <div className="space-y-6">
         {picks.map((userPicks) => (
           <div key={userPicks.user.id} className="bg-white p-4 rounded-lg border border-gray-200">
-            <h4 className="font-semibold text-gray-800 mb-3">{userPicks.user.name}</h4>
+            <div className="flex justify-between items-center mb-3">
+              <h4 className="font-semibold text-gray-800">{userPicks.user.name}</h4>
+              <button
+                onClick={() => toggleUserExpansion(userPicks.user.id)}
+                className="text-blue-600 hover:text-blue-700 text-sm font-medium flex items-center gap-1"
+              >
+                {expandedUsers.has(userPicks.user.id) ? '▼' : '▶'} 
+                {expandedUsers.has(userPicks.user.id) ? 'Hide History' : 'Show History'}
+              </button>
+            </div>
             
             {/* Finalist Picks */}
             {showFinalists && userPicks.finalistPicks.length > 0 && (
@@ -146,7 +199,7 @@ export default function PublicPicks({
             {/* Weekly Picks */}
             {showWeekly && userPicks.weeklyPicks.length > 0 && (
               <div>
-                <h5 className="text-sm font-medium text-green-600 mb-2">Weekly Picks</h5>
+                <h5 className="text-sm font-medium text-green-600 mb-2">Picks</h5>
                 <div className="space-y-2">
                   {userPicks.weeklyPicks.map((pick) => (
                     <div key={pick.id} className="flex items-center gap-2">
@@ -163,37 +216,72 @@ export default function PublicPicks({
                 </div>
               </div>
             )}
+
+            {/* Expanded Pick History */}
+            {expandedUsers.has(userPicks.user.id) && (
+              <div className="mt-4 pt-4 border-t border-gray-200">
+                <h5 className="text-sm font-medium text-gray-700 mb-3">Season Pick History</h5>
+                {loadingHistory.has(userPicks.user.id) ? (
+                  <div className="text-center py-4">
+                    <div className="animate-spin rounded-full h-6 w-6 border-b-2 border-blue-600 mx-auto"></div>
+                    <p className="mt-2 text-sm text-gray-600">Loading history...</p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {pickHistory.get(userPicks.user.id)?.map((episodePicks) => (
+                      <div key={episodePicks.episode.id} className="bg-gray-50 p-3 rounded-lg">
+                        <div className="flex items-center justify-between mb-2">
+                          <h6 className="font-medium text-gray-800">
+                            Episode {episodePicks.episode.episodeNumber}: {episodePicks.episode.title}
+                          </h6>
+                          <span className={`text-xs px-2 py-1 rounded ${
+                            episodePicks.episode.isCompleted 
+                              ? 'bg-green-100 text-green-800' 
+                              : 'bg-yellow-100 text-yellow-800'
+                          }`}>
+                            {episodePicks.episode.isCompleted ? 'Completed' : 'Pending'}
+                          </span>
+                        </div>
+                        <div className="space-y-1">
+                          {episodePicks.picks.map((pick) => (
+                            <div key={pick.id} className="flex items-center gap-2 text-sm">
+                              <span className={`px-2 py-1 rounded text-xs ${
+                                pick.pickType === 'STAR_BAKER' 
+                                  ? 'bg-yellow-100 text-yellow-800' 
+                                  : pick.pickType === 'ELIMINATION'
+                                  ? 'bg-red-100 text-red-800'
+                                  : 'bg-blue-100 text-blue-800'
+                              }`}>
+                                {pick.pickType === 'STAR_BAKER' ? '⭐' : 
+                                 pick.pickType === 'ELIMINATION' ? '❌' : '🏆'} 
+                                {pick.pickType.replace('_', ' ')}
+                              </span>
+                              <div className="flex items-center gap-2">
+                                {pick.contestant.imageUrl && (
+                                  <img
+                                    src={pick.contestant.imageUrl}
+                                    alt={pick.contestant.name}
+                                    className="w-5 h-5 rounded-full object-cover"
+                                  />
+                                )}
+                                <span className="text-gray-700">{pick.contestant.name}</span>
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                    {pickHistory.get(userPicks.user.id)?.length === 0 && (
+                      <p className="text-sm text-gray-500 text-center py-4">No pick history available</p>
+                    )}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   )
 
-  async function sendWhatsAppNotification() {
-    if (!episodeId) return
-    
-    try {
-      const response = await fetch('/api/whatsapp/notify-picks', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          episodeId,
-          seasonId
-        })
-      })
-      
-      if (response.ok) {
-        const data = await response.json()
-        alert('WhatsApp notification sent!')
-        console.log('WhatsApp message:', data.formattedMessage)
-      } else {
-        alert('Error sending WhatsApp notification')
-      }
-    } catch (error) {
-      console.error('Error sending WhatsApp notification:', error)
-      alert('Error sending WhatsApp notification')
-    }
-  }
 }
