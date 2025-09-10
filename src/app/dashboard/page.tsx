@@ -4,12 +4,22 @@ import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import PublicPicks from '@/components/PublicPicks'
+import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
 
 interface Season {
   id: string
   name: string
   year: number
   isActive: boolean
+}
+
+interface Episode {
+  id: string
+  title: string
+  episodeNumber: number
+  isActive: boolean
+  isCompleted: boolean
 }
 
 interface LeaderboardEntry {
@@ -38,6 +48,9 @@ export default function Dashboard() {
   const [seasons, setSeasons] = useState<Season[]>([])
   const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
   const [loading, setLoading] = useState(true)
+  const [episodes, setEpisodes] = useState<Episode[]>([])
+  const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null)
+  const [allUsersSubmitted, setAllUsersSubmitted] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -64,6 +77,27 @@ export default function Dashboard() {
     }
   }, [session, status, router])
 
+  // Real-time updates
+  const activeSeason = seasons.find(s => s.isActive)
+  useRealtimeUpdates(activeSeason?.id || null, (update) => {
+    console.log('Real-time update received:', update)
+    
+    if (update.type === 'picks_updated') {
+      // Refresh leaderboard and check submission status
+      if (activeSeason) {
+        fetchLeaderboard(activeSeason.id)
+        if (activeEpisode) {
+          checkAllUsersSubmitted()
+        }
+      }
+    } else if (update.type === 'leaderboard_updated') {
+      // Refresh leaderboard
+      if (activeSeason) {
+        fetchLeaderboard(activeSeason.id)
+      }
+    }
+  })
+
   const fetchSeasons = async () => {
     try {
       const response = await fetch('/api/seasons')
@@ -71,10 +105,11 @@ export default function Dashboard() {
         const data = await response.json()
         setSeasons(data)
         
-        // Find the active season and fetch leaderboard
+        // Find the active season and fetch leaderboard and episodes
         const activeSeason = data.find((season: Season) => season.isActive)
         if (activeSeason) {
           fetchLeaderboard(activeSeason.id)
+          fetchEpisodes(activeSeason.id)
         }
       }
     } catch (error) {
@@ -93,6 +128,40 @@ export default function Dashboard() {
       }
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
+    }
+  }
+
+  const fetchEpisodes = async (seasonId: string) => {
+    try {
+      const response = await fetch(`/api/episodes?seasonId=${seasonId}`)
+      if (response.ok) {
+        const data = await response.json()
+        setEpisodes(data)
+        
+        // Find the active episode
+        const active = data.find((ep: Episode) => ep.isActive)
+        if (active) {
+          setActiveEpisode(active)
+          checkAllUsersSubmitted(active.id)
+        }
+      }
+    } catch (error) {
+      console.error('Error fetching episodes:', error)
+    }
+  }
+
+  const checkAllUsersSubmitted = async (episodeId?: string) => {
+    const episodeToCheck = episodeId || activeEpisode?.id
+    if (!episodeToCheck) return
+    
+    try {
+      const response = await fetch(`/api/episode-picks-status?episodeId=${episodeToCheck}`)
+      if (response.ok) {
+        const data = await response.json()
+        setAllUsersSubmitted(data.allUsersSubmitted)
+      }
+    } catch (error) {
+      console.error('Error checking submission status:', error)
     }
   }
 
@@ -166,6 +235,33 @@ export default function Dashboard() {
               )}
             </div>
           </div>
+
+          {/* Episode Status */}
+          {activeEpisode && (
+            <div className="mt-8">
+              <div className="bg-amber-50 p-4 rounded-lg mb-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h4 className="font-semibold text-amber-800">
+                      {activeEpisode.title} - Episode {activeEpisode.episodeNumber}
+                    </h4>
+                    <p className="text-sm text-amber-700">
+                      {allUsersSubmitted 
+                        ? '🎉 All players have submitted their picks!' 
+                        : '⏳ Waiting for all players to submit their picks...'
+                      }
+                    </p>
+                  </div>
+                  {allUsersSubmitted && (
+                    <div className="text-right">
+                      <div className="text-2xl">🎉</div>
+                      <div className="text-xs text-amber-600">Ready to watch!</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
           
           {/* Full Leaderboard */}
           {leaderboard.length > 0 && (
@@ -278,6 +374,45 @@ export default function Dashboard() {
                   <div>• Soggy bottom comment: -1 point each (for Star Baker picks)</div>
                   <div>• Finalist correct: +3 points (scored at season end)</div>
                 </div>
+              </div>
+            </div>
+          )}
+
+          {/* Public Picks - Show when all users have submitted */}
+          {allUsersSubmitted && activeEpisode && activeSeason && (
+            <div className="mt-8">
+              <div className="bg-green-50 p-6 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold text-green-800 mb-4">
+                  🎉 All Picks Are In! 
+                  <span className="text-sm font-normal text-green-600 ml-2">
+                    Here's what everyone picked for {activeEpisode.title}
+                  </span>
+                </h3>
+                <PublicPicks
+                  seasonId={activeSeason.id}
+                  episodeId={activeEpisode.id}
+                  showFinalists={false}
+                  showWeekly={true}
+                />
+              </div>
+            </div>
+          )}
+
+          {/* Finalist Picks - Always visible */}
+          {activeSeason && (
+            <div className="mt-8">
+              <div className="bg-blue-50 p-6 rounded-lg mb-6">
+                <h3 className="text-lg font-semibold text-blue-800 mb-4">
+                  🏆 Finalist Picks
+                  <span className="text-sm font-normal text-blue-600 ml-2">
+                    See who everyone thinks will make it to the finale
+                  </span>
+                </h3>
+                <PublicPicks
+                  seasonId={activeSeason.id}
+                  showFinalists={true}
+                  showWeekly={false}
+                />
               </div>
             </div>
           )}
