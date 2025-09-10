@@ -1,8 +1,16 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function POST(request: NextRequest) {
   try {
+    // Check if user is admin
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user.isAdmin) {
+      return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
+    }
+
     const { episodeId, seasonId } = await request.json()
 
     if (!episodeId || !seasonId) {
@@ -71,14 +79,14 @@ export async function POST(request: NextRequest) {
 
     message += `Good luck everyone! 🍰✨`
 
-    // For now, we'll just return the formatted message
-    // In a real implementation, you would send this to WhatsApp API
-    console.log('WhatsApp message:', message)
+    // Return the formatted message for copying
+    console.log('WhatsApp message prepared:', message)
 
     return NextResponse.json({ 
       success: true, 
-      message: 'Picks notification prepared',
-      formattedMessage: message
+      message: 'Message formatted for WhatsApp sharing',
+      formattedMessage: message,
+      instructions: 'Copy the message below and paste it into your WhatsApp group chat'
     })
   } catch (error) {
     console.error('Error preparing WhatsApp notification:', error)

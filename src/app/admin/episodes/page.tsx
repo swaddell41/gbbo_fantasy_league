@@ -195,6 +195,48 @@ export default function ManageEpisodes() {
     setShowForm(false)
   }
 
+  const shareToWhatsApp = async (episode: Episode) => {
+    if (!selectedSeason) return
+
+    try {
+      const response = await fetch('/api/whatsapp/notify-picks', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          episodeId: episode.id,
+          seasonId: selectedSeason.id
+        })
+      })
+
+      if (response.ok) {
+        const data = await response.json()
+        
+        // Copy to clipboard
+        try {
+          await navigator.clipboard.writeText(data.formattedMessage)
+          alert('WhatsApp message copied to clipboard! You can now paste it into your WhatsApp group.')
+        } catch (error) {
+          // Fallback: show the message in a prompt
+          const userConfirmed = confirm(`Copy this message to your WhatsApp group:\n\n${data.formattedMessage}`)
+          if (userConfirmed) {
+            // Try to open WhatsApp
+            const encodedMessage = encodeURIComponent(data.formattedMessage)
+            const whatsappUrl = `https://wa.me/?text=${encodedMessage}`
+            window.open(whatsappUrl, '_blank')
+          }
+        }
+      } else {
+        const error = await response.json()
+        alert(`Error: ${error.error}`)
+      }
+    } catch (error) {
+      console.error('Error generating WhatsApp message:', error)
+      alert('Error generating WhatsApp message')
+    }
+  }
+
   const deleteEpisode = async (episodeId: string, episodeTitle: string) => {
     if (!confirm(`Are you sure you want to delete "${episodeTitle}"? This action cannot be undone.`)) {
       return
@@ -486,6 +528,12 @@ export default function ManageEpisodes() {
                             className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
                           >
                             Results
+                          </button>
+                          <button
+                            onClick={() => shareToWhatsApp(episode)}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                          >
+                            📱 Share
                           </button>
                           <button
                             onClick={() => startEditing(episode)}

@@ -148,6 +148,15 @@ export default function AdminDashboard() {
               <p className="text-red-700">Manage user accounts and reset passwords</p>
             </Link>
 
+            <Link
+              href="/admin/whatsapp"
+              className="bg-green-50 hover:bg-green-100 p-6 rounded-lg border border-green-200 transition-colors duration-200"
+            >
+              <div className="text-4xl mb-4">📱</div>
+              <h3 className="text-lg font-semibold text-green-800 mb-2">WhatsApp Sharing</h3>
+              <p className="text-green-700">Share picks and results to WhatsApp group</p>
+            </Link>
+
           </div>
 
           <div className="bg-gray-50 p-6 rounded-lg">
