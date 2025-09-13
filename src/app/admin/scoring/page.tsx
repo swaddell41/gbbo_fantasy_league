@@ -22,6 +22,7 @@ interface ScoreEntry {
   wrongStarBaker: number
   wrongElimination: number
   totalEpisodes: number
+  totalEpisodesWithPicks: number
 }
 
 export default function ScoringPage() {
@@ -267,14 +268,14 @@ export default function ScoringPage() {
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <span className="text-green-600">{score.correctStarBaker}</span>
-                          <span className="text-gray-400">/{score.totalEpisodes}</span>
+                          <span className="text-gray-400">/{score.totalEpisodesWithPicks || score.totalEpisodes}</span>
                           {score.wrongStarBaker > 0 && (
                             <span className="text-red-600 ml-1">({score.wrongStarBaker} wrong)</span>
                           )}
                         </td>
                         <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
                           <span className="text-green-600">{score.correctElimination}</span>
-                          <span className="text-gray-400">/{score.totalEpisodes}</span>
+                          <span className="text-gray-400">/{score.totalEpisodesWithPicks || score.totalEpisodes}</span>
                           {score.wrongElimination > 0 && (
                             <span className="text-red-600 ml-1">({score.wrongElimination} wrong)</span>
                           )}

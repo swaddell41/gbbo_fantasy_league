@@ -15,6 +15,7 @@ interface LeaderboardEntry {
   wrongStarBaker: number
   wrongElimination: number
   totalEpisodes: number
+  totalEpisodesWithPicks: number
   technicalChallengeWins: number
   handshakes: number
   soggyBottoms: number
@@ -144,6 +145,16 @@ export default function Leaderboard({ seasonId }: LeaderboardProps) {
               </div>
             </div>
 
+            {/* Episode Summary */}
+            <div className="mt-3 text-sm text-gray-600">
+              <span className="font-medium">Episodes with picks:</span> {entry.totalEpisodesWithPicks}
+              {entry.totalEpisodes > 0 && (
+                <span className="ml-2">
+                  ({entry.totalEpisodes} completed)
+                </span>
+              )}
+            </div>
+
             {/* Detailed stats */}
             <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
               <div>
@@ -157,14 +168,24 @@ export default function Leaderboard({ seasonId }: LeaderboardProps) {
               <div>
                 <div className="text-gray-600">Star Baker</div>
                 <div className="font-semibold text-green-600">
-                  {entry.correctStarBaker}/{entry.totalEpisodes}
+                  {entry.correctStarBaker}/{entry.totalEpisodesWithPicks}
                 </div>
+                {entry.wrongStarBaker > 0 && (
+                  <div className="text-xs text-red-600">
+                    {entry.wrongStarBaker} wrong
+                  </div>
+                )}
               </div>
               <div>
                 <div className="text-gray-600">Elimination</div>
                 <div className="font-semibold text-green-600">
-                  {entry.correctElimination}/{entry.totalEpisodes}
+                  {entry.correctElimination}/{entry.totalEpisodesWithPicks}
                 </div>
+                {entry.wrongElimination > 0 && (
+                  <div className="text-xs text-red-600">
+                    {entry.wrongElimination} wrong
+                  </div>
+                )}
               </div>
             </div>
 

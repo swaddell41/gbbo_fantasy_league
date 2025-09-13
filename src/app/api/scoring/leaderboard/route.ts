@@ -38,8 +38,35 @@ export async function GET(request: NextRequest) {
       orderBy: { totalScore: 'desc' }
     })
 
+    // Calculate actual episodes with picks for each user
+    const leaderboardWithPickCounts = await Promise.all(
+      leaderboard.map(async (entry) => {
+        // Count unique episodes where this user has made picks
+        const episodesWithPicks = await prisma.pick.findMany({
+          where: {
+            userId: entry.userId,
+            seasonId: seasonId,
+            pickType: {
+              in: ['STAR_BAKER', 'ELIMINATION']
+            }
+          },
+          select: {
+            episodeId: true
+          },
+          distinct: ['episodeId']
+        })
+
+        const totalEpisodesWithPicks = episodesWithPicks.length
+
+        return {
+          ...entry,
+          totalEpisodesWithPicks
+        }
+      })
+    )
+
     // Add rank to each entry
-    const rankedLeaderboard = leaderboard.map((entry, index) => ({
+    const rankedLeaderboard = leaderboardWithPickCounts.map((entry, index) => ({
       rank: index + 1,
       userId: entry.user.id,
       userName: entry.user.name,
@@ -51,9 +78,10 @@ export async function GET(request: NextRequest) {
       correctElimination: entry.correctElimination,
       wrongStarBaker: entry.wrongStarBaker,
       wrongElimination: entry.wrongElimination,
-      totalEpisodes: entry.totalEpisodes,
-      accuracy: entry.totalEpisodes > 0 
-        ? Math.round(((entry.correctStarBaker + entry.correctElimination) / (entry.totalEpisodes * 2)) * 100)
+      totalEpisodes: entry.totalEpisodes, // Completed episodes
+      totalEpisodesWithPicks: entry.totalEpisodesWithPicks, // Episodes with picks
+      accuracy: entry.totalEpisodesWithPicks > 0 
+        ? Math.round(((entry.correctStarBaker + entry.correctElimination) / (entry.totalEpisodesWithPicks * 2)) * 100)
         : 0
     }))
 
