@@ -80,6 +80,9 @@ export async function GET(request: NextRequest) {
       wrongElimination: entry.wrongElimination,
       totalEpisodes: entry.totalEpisodes, // Completed episodes
       totalEpisodesWithPicks: entry.totalEpisodesWithPicks, // Episodes with picks
+      technicalChallengeWins: entry.technicalChallengeWins,
+      handshakes: entry.handshakes,
+      soggyBottoms: entry.soggyBottoms,
       accuracy: entry.totalEpisodesWithPicks > 0 
         ? Math.round(((entry.correctStarBaker + entry.correctElimination) / (entry.totalEpisodesWithPicks * 2)) * 100)
         : 0
