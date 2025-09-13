@@ -3,6 +3,18 @@ import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// Scoring rules - must match the rules in /api/scoring/calculate/route.ts
+const SCORING_RULES = {
+  FINALIST_CORRECT: 3, // Points for each correct finalist pick
+  STAR_BAKER_CORRECT: 3, // Points for correct Star Baker pick
+  ELIMINATION_CORRECT: 2, // Points for correct Elimination pick
+  STAR_BAKER_WRONG_ELIMINATED: -3, // Penalty if Star Baker pick gets eliminated
+  ELIMINATION_WRONG_STAR_BAKER: -3, // Penalty if Elimination pick wins Star Baker
+  TECHNICAL_CHALLENGE_WIN: 1, // Bonus for Star Baker winning technical challenge
+  HANDSHAKE: 1, // Bonus for Paul Hollywood handshake
+  SOGGY_BOTTOM: -1, // Penalty for soggy bottom comment
+}
+
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
@@ -116,14 +128,15 @@ async function calculateEpisodeScores(episodeId: string, starBakerId: string, el
       // Check Star Baker pick
       if (picks.starBaker) {
         const isCorrect = picks.starBaker.contestantId === starBakerId
-        points += isCorrect ? 10 : 0
-        weeklyPoints += isCorrect ? 10 : 0
+        const starBakerPoints = isCorrect ? SCORING_RULES.STAR_BAKER_CORRECT : 0
+        points += starBakerPoints
+        weeklyPoints += starBakerPoints
         
         await prisma.pick.update({
           where: { id: picks.starBaker.id },
           data: { 
             isCorrect,
-            points: isCorrect ? 10 : 0
+            points: starBakerPoints
           }
         })
       }
@@ -131,14 +144,15 @@ async function calculateEpisodeScores(episodeId: string, starBakerId: string, el
       // Check Elimination pick
       if (picks.elimination) {
         const isCorrect = picks.elimination.contestantId === eliminatedId
-        points += isCorrect ? 10 : 0
-        weeklyPoints += isCorrect ? 10 : 0
+        const eliminationPoints = isCorrect ? SCORING_RULES.ELIMINATION_CORRECT : 0
+        points += eliminationPoints
+        weeklyPoints += eliminationPoints
         
         await prisma.pick.update({
           where: { id: picks.elimination.id },
           data: { 
             isCorrect,
-            points: isCorrect ? 10 : 0
+            points: eliminationPoints
           }
         })
       }

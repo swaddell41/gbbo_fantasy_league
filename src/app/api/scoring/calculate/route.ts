@@ -22,9 +22,22 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { seasonId } = await request.json()
+    const { seasonId, recalculate = false } = await request.json()
     if (!seasonId) {
       return NextResponse.json({ error: 'Season ID is required' }, { status: 400 })
+    }
+
+    // If recalculate is true, reset all scores for this season first
+    if (recalculate) {
+      await prisma.userScore.deleteMany({
+        where: { seasonId }
+      })
+      
+      // Reset all pick points to 0
+      await prisma.pick.updateMany({
+        where: { seasonId },
+        data: { points: 0, isCorrect: null }
+      })
     }
 
     // Get all non-admin users for this season
