@@ -127,8 +127,20 @@ async function calculateEpisodeScores(episodeId: string, starBakerId: string, el
 
       // Check Star Baker pick
       if (picks.starBaker) {
-        const isCorrect = picks.starBaker.contestantId === starBakerId
-        const starBakerPoints = isCorrect ? SCORING_RULES.STAR_BAKER_CORRECT : 0
+        let starBakerPoints = 0
+        let isCorrect = false
+        
+        if (picks.starBaker.contestantId === starBakerId) {
+          // Correct Star Baker pick
+          starBakerPoints = SCORING_RULES.STAR_BAKER_CORRECT
+          isCorrect = true
+        } else if (picks.starBaker.contestantId === eliminatedId) {
+          // Star Baker pick was eliminated (wrong pick)
+          starBakerPoints = SCORING_RULES.STAR_BAKER_WRONG_ELIMINATED
+          isCorrect = false
+        }
+        // If neither Star Baker nor eliminated, no points awarded or deducted
+        
         points += starBakerPoints
         weeklyPoints += starBakerPoints
         
@@ -143,8 +155,20 @@ async function calculateEpisodeScores(episodeId: string, starBakerId: string, el
 
       // Check Elimination pick
       if (picks.elimination) {
-        const isCorrect = picks.elimination.contestantId === eliminatedId
-        const eliminationPoints = isCorrect ? SCORING_RULES.ELIMINATION_CORRECT : 0
+        let eliminationPoints = 0
+        let isCorrect = false
+        
+        if (picks.elimination.contestantId === eliminatedId) {
+          // Correct Elimination pick
+          eliminationPoints = SCORING_RULES.ELIMINATION_CORRECT
+          isCorrect = true
+        } else if (picks.elimination.contestantId === starBakerId) {
+          // Elimination pick won Star Baker (wrong pick)
+          eliminationPoints = SCORING_RULES.ELIMINATION_WRONG_STAR_BAKER
+          isCorrect = false
+        }
+        // If neither eliminated nor Star Baker, no points awarded or deducted
+        
         points += eliminationPoints
         weeklyPoints += eliminationPoints
         
