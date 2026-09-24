@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { computeSeasonScores } from '@/lib/leaderboard'
 
 export async function GET(request: NextRequest) {
   try {
@@ -18,91 +19,44 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'User ID and Season ID are required' }, { status: 400 })
     }
 
-    // Get all picks for the user in the season
-    const picks = await prisma.pick.findMany({
-      where: {
-        userId: userId,
-        seasonId: seasonId
-      },
-      include: {
-        contestant: {
-          select: {
-            id: true,
-            name: true,
-            imageUrl: true
-          }
+    const [picks, { pickPoints }] = await Promise.all([
+      prisma.pick.findMany({
+        where: { userId, seasonId },
+        include: {
+          contestant: { select: { id: true, name: true, imageUrl: true } },
+          episode: { select: { id: true, title: true, episodeNumber: true, isCompleted: true } }
         },
-        episode: {
-          select: {
-            id: true,
-            title: true,
-            episodeNumber: true,
-            isCompleted: true
-          }
-        }
-      },
-      orderBy: [
-        { pickType: 'asc' }, // Finalist picks first
-        { episode: { episodeNumber: 'asc' } }
-      ]
+        orderBy: [{ pickType: 'asc' }, { episode: { episodeNumber: 'asc' } }]
+      }),
+      computeSeasonScores(seasonId)
+    ])
+
+    type Episode = { id: string; title: string; episodeNumber: number; isCompleted: boolean }
+    const toEntry = (pick: (typeof picks)[number]) => ({
+      id: pick.id,
+      pickType: pick.pickType,
+      contestant: pick.contestant,
+      // null until the episode (or, for finalists, the final) is scored
+      points: pickPoints.get(pick.id) ?? null
     })
 
-    // Separate finalist picks from episode picks
     const finalistPicks = picks.filter(pick => pick.pickType === 'FINALIST')
-    const episodePicks = picks.filter(pick => pick.pickType !== 'FINALIST')
+    const picksByEpisode = new Map<string, { episode: Episode; picks: ReturnType<typeof toEntry>[] }>()
 
-    // Group episode picks by episode
-    const picksByEpisode = new Map<string, {
-      episode: {
-        id: string
-        title: string
-        episodeNumber: number
-        isCompleted: boolean
-      }
-      picks: Array<{
-        id: string
-        pickType: string
-        contestant: {
-          id: string
-          name: string
-          imageUrl?: string
-        }
-      }>
-    }>()
-
-    episodePicks.forEach(pick => {
-      const episodeId = pick.episode.id
-      if (!picksByEpisode.has(episodeId)) {
-        picksByEpisode.set(episodeId, {
-          episode: pick.episode,
-          picks: []
-        })
-      }
-      
-      picksByEpisode.get(episodeId)!.picks.push({
-        id: pick.id,
-        pickType: pick.pickType,
-        contestant: pick.contestant
-      })
-    })
-
-    // Create finalist picks section
-    const finalistSection = {
-      episode: {
-        id: 'finalist',
-        title: 'Finalist Picks',
-        episodeNumber: 0,
-        isCompleted: true
-      },
-      picks: finalistPicks.map(pick => ({
-        id: pick.id,
-        pickType: pick.pickType,
-        contestant: pick.contestant
-      }))
+    for (const pick of picks) {
+      if (pick.pickType === 'FINALIST' || !pick.episode) continue
+      const group = picksByEpisode.get(pick.episode.id) ?? { episode: pick.episode, picks: [] }
+      group.picks.push(toEntry(pick))
+      picksByEpisode.set(pick.episode.id, group)
     }
 
-    // Combine finalist picks with episode picks
-    const allPicks = finalistPicks.length > 0 ? [finalistSection, ...Array.from(picksByEpisode.values())] : Array.from(picksByEpisode.values())
+    const allPicks = [...picksByEpisode.values()]
+    if (finalistPicks.length > 0) {
+      allPicks.unshift({
+        episode: { id: 'finalist', title: 'Finalist Picks', episodeNumber: 0, isCompleted: true },
+        picks: finalistPicks.map(toEntry)
+      })
+    }
 
     return NextResponse.json({
       success: true,

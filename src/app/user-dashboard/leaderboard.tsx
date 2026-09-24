@@ -1,6 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
+import { usePolling } from '@/hooks/usePolling'
+import ScoringRules from '@/components/ScoringRules'
 
 interface LeaderboardEntry {
   rank: number
@@ -31,28 +33,23 @@ export default function Leaderboard({ seasonId }: LeaderboardProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  useEffect(() => {
-    fetchLeaderboard()
-  }, [seasonId])
-
-  const fetchLeaderboard = async () => {
+  const fetchLeaderboard = useCallback(async () => {
     try {
-      setLoading(true)
       const response = await fetch(`/api/scoring/leaderboard?seasonId=${seasonId}`)
-      
       if (!response.ok) {
         throw new Error('Failed to fetch leaderboard')
       }
-      
-      const data = await response.json()
-      setLeaderboard(data)
+      setLeaderboard(await response.json())
+      setError(null)
     } catch (error) {
       console.error('Error fetching leaderboard:', error)
       setError('Failed to load leaderboard')
     } finally {
       setLoading(false)
     }
-  }
+  }, [seasonId])
+
+  usePolling(fetchLeaderboard)
 
   if (loading) {
     return (
@@ -208,20 +205,7 @@ export default function Leaderboard({ seasonId }: LeaderboardProps) {
         ))}
       </div>
 
-      {/* Scoring Rules */}
-      <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-        <h4 className="font-semibold text-gray-800 mb-2">Scoring Rules</h4>
-        <div className="text-sm text-gray-600 space-y-1">
-          <div>• Star Baker correct: +3 points</div>
-          <div>• Elimination correct: +2 points</div>
-          <div>• Star Baker wrong (eliminated): -3 points</div>
-          <div>• Elimination wrong (Star Baker): -3 points</div>
-          <div>• Technical Challenge win: +1 point (for Star Baker picks)</div>
-          <div>• Paul Hollywood handshake: +1 point each (for Star Baker picks)</div>
-          <div>• Soggy bottom comment: -1 point each (for Star Baker picks)</div>
-          <div>• Finalist correct: +3 points (scored at season end)</div>
-        </div>
-      </div>
+      <ScoringRules embedded />
     </div>
   )
 }

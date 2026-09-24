@@ -2,10 +2,11 @@
 
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
 import PublicPicks from '@/components/PublicPicks'
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { usePolling } from '@/hooks/usePolling'
+import ScoringRules from '@/components/ScoringRules'
 
 interface Season {
   id: string
@@ -78,26 +79,15 @@ export default function Dashboard() {
     }
   }, [session, status, router])
 
-  // Real-time updates
+  // Keep leaderboard, active episode and submission status fresh for everyone
   const activeSeason = seasons.find(s => s.isActive)
-  useRealtimeUpdates(activeSeason?.id || null, (update) => {
-    console.log('Real-time update received:', update)
-    
-    if (update.type === 'picks_updated') {
-      // Refresh leaderboard and check submission status
-      if (activeSeason) {
-        fetchLeaderboard(activeSeason.id)
-        if (activeEpisode) {
-          checkAllUsersSubmitted()
-        }
-      }
-    } else if (update.type === 'leaderboard_updated') {
-      // Refresh leaderboard
-      if (activeSeason) {
-        fetchLeaderboard(activeSeason.id)
-      }
-    }
-  })
+  const activeSeasonId = activeSeason?.id
+  const refreshSeason = useCallback(() => {
+    if (!activeSeasonId) return
+    fetchLeaderboard(activeSeasonId)
+    fetchEpisodes(activeSeasonId)
+  }, [activeSeasonId]) // eslint-disable-line react-hooks/exhaustive-deps
+  usePolling(refreshSeason)
 
   const fetchSeasons = async () => {
     try {
@@ -106,12 +96,6 @@ export default function Dashboard() {
         const data = await response.json()
         setSeasons(data)
         
-        // Find the active season and fetch leaderboard and episodes
-        const activeSeason = data.find((season: Season) => season.isActive)
-        if (activeSeason) {
-          fetchLeaderboard(activeSeason.id)
-          fetchEpisodes(activeSeason.id)
-        }
       }
     } catch (error) {
       console.error('Error fetching seasons:', error)
@@ -382,20 +366,7 @@ export default function Dashboard() {
                 ))}
               </div>
 
-              {/* Scoring Rules */}
-              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
-                <h4 className="font-semibold text-gray-800 mb-2">Scoring Rules</h4>
-                <div className="text-sm text-gray-600 space-y-1">
-                  <div>• Star Baker correct: +3 points</div>
-                  <div>• Elimination correct: +2 points</div>
-                  <div>• Star Baker wrong (eliminated): -3 points</div>
-                  <div>• Elimination wrong (Star Baker): -3 points</div>
-                  <div>• Technical Challenge win: +1 point (for Star Baker picks)</div>
-                  <div>• Paul Hollywood handshake: +1 point each (for Star Baker picks)</div>
-                  <div>• Soggy bottom comment: -1 point each (for Star Baker picks)</div>
-                  <div>• Finalist correct: +3 points (scored at season end)</div>
-                </div>
-              </div>
+              <ScoringRules embedded />
             </div>
           )}
 
@@ -406,7 +377,7 @@ export default function Dashboard() {
                 <h3 className="text-lg font-semibold text-green-800 mb-4">
                   🎉 All Picks Are In! 
                   <span className="text-sm font-normal text-green-600 ml-2">
-                    Here's what everyone picked for {activeEpisode.title}
+                    Here&rsquo;s what everyone picked for {activeEpisode.title}
                   </span>
                 </h3>
                 <PublicPicks

@@ -24,7 +24,6 @@ model User {
   picks     Pick[]
   sessions  Session[]
   accounts  Account[]
-  scores    UserScore[]
 
   @@map("users")
 }
@@ -71,7 +70,6 @@ model Season {
   contestants Contestant[]
   episodes    Episode[]
   picks       Pick[]
-  scores      UserScore[]
 
   @@map("seasons")
 }
@@ -83,6 +81,7 @@ model Contestant {
   bio         String?
   seasonId    String
   isEliminated Boolean @default(false)
+  isFinalist  Boolean  @default(false)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -131,8 +130,6 @@ model Pick {
   episodeId    String?
   seasonId     String
   pickType     PickType
-  points       Int      @default(0)
-  isCorrect    Boolean?
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 
@@ -144,32 +141,6 @@ model Pick {
 
   @@unique([userId, episodeId, pickType])
   @@map("picks")
-}
-
-model UserScore {
-  id        String   @id @default(cuid())
-  userId    String
-  seasonId  String
-  totalScore Int    @default(0)
-  weeklyScore Int   @default(0)
-  finalistScore Int @default(0)
-  correctStarBaker Int @default(0)
-  correctElimination Int @default(0)
-  wrongStarBaker Int @default(0)
-  wrongElimination Int @default(0)
-  totalEpisodes Int @default(0)
-  technicalChallengeWins Int @default(0)
-  handshakes Int @default(0)
-  soggyBottoms Int @default(0)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  // Relations
-  user      User   @relation(fields: [userId], references: [id], onDelete: Cascade)
-  season    Season @relation(fields: [seasonId], references: [id], onDelete: Cascade)
-
-  @@unique([userId, seasonId])
-  @@map("user_scores")
 }
 
 model EpisodeHandshake {

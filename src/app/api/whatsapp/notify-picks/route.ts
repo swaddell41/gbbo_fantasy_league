@@ -80,7 +80,6 @@ export async function POST(request: NextRequest) {
     message += `Good luck everyone! 🍰✨`
 
     // Return the formatted message for copying
-    console.log('WhatsApp message prepared:', message)
 
     return NextResponse.json({ 
       success: true, 
@@ -92,28 +91,4 @@ export async function POST(request: NextRequest) {
     console.error('Error preparing WhatsApp notification:', error)
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
   }
-}
-
-// Function to actually send to WhatsApp (you'll need to implement this with WhatsApp Business API)
-async function sendToWhatsApp(message: string, groupId: string) {
-  // This is where you would integrate with WhatsApp Business API
-  // For now, we'll just log the message
-  console.log(`Sending to WhatsApp group ${groupId}:`, message)
-  
-  // Example implementation:
-  // const response = await fetch(`https://graph.facebook.com/v17.0/${groupId}/messages`, {
-  //   method: 'POST',
-  //   headers: {
-  //     'Authorization': `Bearer ${process.env.WHATSAPP_ACCESS_TOKEN}`,
-  //     'Content-Type': 'application/json',
-  //   },
-  //   body: JSON.stringify({
-  //     messaging_product: 'whatsapp',
-  //     to: groupId,
-  //     type: 'text',
-  //     text: { body: message }
-  //   })
-  // })
-  
-  return { success: true }
 }

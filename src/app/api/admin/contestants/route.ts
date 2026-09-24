@@ -120,3 +120,27 @@ export async function DELETE(request: NextRequest) {
     )
   }
 }
+
+export async function PATCH(request: NextRequest) {
+  try {
+    const session = await getServerSession(authOptions)
+    if (!session || !session.user.isAdmin) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id, isFinalist } = await request.json()
+    if (!id || typeof isFinalist !== 'boolean') {
+      return NextResponse.json({ error: 'id and isFinalist are required' }, { status: 400 })
+    }
+
+    const contestant = await prisma.contestant.update({
+      where: { id },
+      data: { isFinalist }
+    })
+
+    return NextResponse.json(contestant)
+  } catch (error) {
+    console.error('Error updating contestant:', error)
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 })
+  }
+}
