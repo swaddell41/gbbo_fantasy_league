@@ -97,7 +97,7 @@ function ImportContestantsContent() {
         },
         body: JSON.stringify({
           seasonId: selectedSeason.id,
-          source: 'gbbo-2025'
+          source: 'gbbo-2026'
         }),
       })
 
@@ -229,7 +229,7 @@ function ImportContestantsContent() {
 
               <div className="space-y-6">
                 <div className="bg-blue-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">GBBO 2025 Contestants</h3>
+                  <h3 className="text-lg font-semibold text-blue-800 mb-2">GBBO 2026 Contestants</h3>
                   <p className="text-blue-700 mb-4">
                     This will import all 12 contestants from the official GBBO website with their photos and bios.
                   </p>
@@ -238,7 +238,7 @@ function ImportContestantsContent() {
                     disabled={importing}
                     className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
-                    {importing ? 'Importing...' : 'Import GBBO 2025 Contestants'}
+                    {importing ? 'Importing...' : 'Import GBBO 2026 Contestants'}
                   </button>
                 </div>
 

@@ -1,13 +1,13 @@
 'use client'
 
-import { useState, useEffect, Suspense } from 'react'
+import { useState, useEffect, useCallback, Suspense } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import WeeklyPicks from './weekly-picks'
 import Leaderboard from './leaderboard'
 import PublicPicks from '@/components/PublicPicks'
-import { useRealtimeUpdates } from '@/hooks/useRealtimeUpdates'
+import { usePolling } from '@/hooks/usePolling'
 
 interface Season {
   id: string
@@ -75,21 +75,37 @@ function UserDashboardContent() {
     fetchSeasons()
   }, [session, status, router])
 
-  // Real-time updates
-  useRealtimeUpdates(selectedSeason?.id || null, (update) => {
-    console.log('Real-time update received:', update)
-    
-    if (update.type === 'picks_updated') {
-      // Refresh picks data
-      if (selectedSeason) {
-        fetchUserPicks(selectedSeason.id)
-        checkAllUsersSubmitted()
+  // Pick up new results, eliminations and everyone's submissions without a
+  // reload, while keeping whichever episode this player is looking at
+  const selectedSeasonId = selectedSeason?.id
+  const selectedEpisodeId = selectedEpisode?.id
+  const refreshSeason = useCallback(async () => {
+    if (!selectedSeasonId) return
+    try {
+      const [episodesRes, contestantsRes] = await Promise.all([
+        fetch(`/api/episodes?seasonId=${selectedSeasonId}`),
+        fetch(`/api/contestants?seasonId=${selectedSeasonId}`),
+      ])
+      if (contestantsRes.ok) setContestants(await contestantsRes.json())
+      if (episodesRes.ok) {
+        const data: Episode[] = await episodesRes.json()
+        setEpisodes(data)
+        const current = data.find(ep => ep.id === selectedEpisodeId)
+        if (current) setSelectedEpisode(current)
       }
-    } else if (update.type === 'leaderboard_updated') {
-      // Refresh leaderboard if visible
-      // This would trigger a re-fetch of leaderboard data
+      if (selectedEpisodeId) {
+        const statusRes = await fetch(`/api/episode-picks-status?episodeId=${selectedEpisodeId}`)
+        if (statusRes.ok) {
+          const { allUsersSubmitted } = await statusRes.json()
+          setAllUsersSubmitted(allUsersSubmitted)
+          if (allUsersSubmitted) setShowPublicPicks(true)
+        }
+      }
+    } catch (error) {
+      console.error('Error refreshing season:', error)
     }
-  })
+  }, [selectedSeasonId, selectedEpisodeId])
+  usePolling(refreshSeason)
 
   const fetchSeasons = async () => {
     try {
@@ -122,16 +138,12 @@ function UserDashboardContent() {
       const response = await fetch(`/api/episodes?seasonId=${seasonId}`)
       if (response.ok) {
         const data = await response.json()
-        console.log('Episodes loaded:', data)
         setEpisodes(data)
         // Set the first active episode as selected
         const activeEpisode = data.find((ep: Episode) => ep.isActive)
-        console.log('Active episode found:', activeEpisode)
         if (activeEpisode) {
           setSelectedEpisode(activeEpisode)
-          console.log('Selected episode set to:', activeEpisode)
         } else {
-          console.log('No active episode found, setting first episode as selected')
           if (data.length > 0) {
             setSelectedEpisode(data[0])
           }
@@ -200,14 +212,6 @@ function UserDashboardContent() {
       return
     }
 
-    console.log('Submitting finalist picks:', {
-      seasonId: selectedSeason?.id,
-      picks: finalistPicks.map(contestantId => ({
-        contestantId,
-        pickType: 'FINALIST'
-      }))
-    })
-
     try {
       const response = await fetch('/api/user/picks', {
         method: 'POST',
@@ -223,12 +227,8 @@ function UserDashboardContent() {
         }),
       })
 
-      console.log('Response status:', response.status)
-      console.log('Response ok:', response.ok)
-
       if (response.ok) {
         const result = await response.json()
-        console.log('Success response:', result)
         setShowFinalistPicks(false)
         fetchUserPicks(selectedSeason!.id)
         alert('Finalist picks saved successfully!')
@@ -479,7 +479,7 @@ function UserDashboardContent() {
                       <h3 className="text-lg font-semibold text-green-800 mb-4">
                         🎉 All Picks Are In! 
                         <span className="text-sm font-normal text-green-600 ml-2">
-                          Here's what everyone picked for {selectedEpisode.title}
+                          Here&rsquo;s what everyone picked for {selectedEpisode.title}
                         </span>
                       </h3>
                       <PublicPicks

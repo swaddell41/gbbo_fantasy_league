@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useCallback } from 'react'
+import { usePolling } from '@/hooks/usePolling'
 
 interface Contestant {
   id: string
@@ -60,41 +61,23 @@ export default function PublicPicks({
   const [pickHistory, setPickHistory] = useState<Map<string, EpisodePicks[]>>(new Map())
   const [loadingHistory, setLoadingHistory] = useState<Set<string>>(new Set())
 
-  useEffect(() => {
-    fetchPicks()
-    if (episodeId) {
-      checkSubmissionStatus()
-    }
-  }, [seasonId, episodeId])
-
-  const fetchPicks = async () => {
+  const refresh = useCallback(async () => {
     try {
       const url = `/api/public-picks?seasonId=${seasonId}${episodeId ? `&episodeId=${episodeId}` : ''}`
-      const response = await fetch(url)
-      if (response.ok) {
-        const data = await response.json()
-        setPicks(data.picksByUser)
-      }
+      const [picksRes, statusRes] = await Promise.all([
+        fetch(url),
+        episodeId ? fetch(`/api/episode-picks-status?episodeId=${episodeId}`) : null,
+      ])
+      if (picksRes.ok) setPicks((await picksRes.json()).picksByUser)
+      if (statusRes?.ok) setAllUsersSubmitted((await statusRes.json()).allUsersSubmitted)
     } catch (error) {
       console.error('Error fetching public picks:', error)
     } finally {
       setLoading(false)
     }
-  }
+  }, [seasonId, episodeId])
 
-  const checkSubmissionStatus = async () => {
-    if (!episodeId) return
-    
-    try {
-      const response = await fetch(`/api/episode-picks-status?episodeId=${episodeId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAllUsersSubmitted(data.allUsersSubmitted)
-      }
-    } catch (error) {
-      console.error('Error checking submission status:', error)
-    }
-  }
+  usePolling(refresh)
 
   const fetchPickHistory = async (userId: string) => {
     if (pickHistory.has(userId)) return // Already loaded

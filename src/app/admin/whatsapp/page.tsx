@@ -236,7 +236,7 @@ export default function WhatsAppSharing() {
                 <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
                 <ol className="text-sm text-blue-700 space-y-1">
                   <li>1. Select the season and episode</li>
-                  <li>2. Click "Generate WhatsApp Message"</li>
+                  <li>2. Click &ldquo;Generate WhatsApp Message&rdquo;</li>
                   <li>3. Copy the message or open WhatsApp</li>
                   <li>4. Paste into your group chat</li>
                 </ol>
@@ -283,7 +283,7 @@ export default function WhatsAppSharing() {
                     <h4 className="font-semibold text-amber-800 mb-2">Instructions:</h4>
                     <p className="text-sm text-amber-700">
                       After copying or opening WhatsApp, paste the message into your group chat. 
-                      The message includes all players' picks for the selected episode.
+                      The message includes all players&rsquo; picks for the selected episode.
                     </p>
                   </div>
                 </div>

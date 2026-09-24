@@ -37,10 +37,9 @@ A fantasy league app for The Great British Bake Off where friends can pick their
    - Update the `DATABASE_URL` in `.env` with your database credentials
    - Generate a secure `NEXTAUTH_SECRET` for authentication
 
-3. **Run database migrations:**
+3. **Sync the database schema** (the project uses `prisma db push`, not migrations):
    ```bash
-   npx prisma migrate dev --name init
-   npx prisma generate
+   npx prisma db push
    ```
 
 4. **Create your admin user:**
@@ -96,19 +95,28 @@ A fantasy league app for The Great British Bake Off where friends can pick their
 
 ## Scoring System
 
-### Weekly Picks
-- **Star Baker correct**: +3 points
-- **Elimination correct**: +2 points
-- **Star Baker wrong (eliminated)**: -3 points
-- **Elimination wrong (Star Baker)**: -3 points
+All scoring lives in `src/lib/scoring.ts` (rules + engine, covered by `npm test`).
+Scores are never stored — every leaderboard is computed from picks and episode
+results on request, so editing or re-saving a result can't double-count.
 
-### Bonus Points (for picked Star Baker)
-- **Technical Challenge win**: +1 point
-- **Paul Hollywood handshake**: +1 point
-- **Soggy bottom comment**: -1 point
+### Weekly Picks
+- **Star Baker pick wins Star Baker**: +3
+- **Elimination pick goes home**: +2
+- **Star Baker pick goes home**: -3
+- **Elimination pick wins Star Baker**: -3
+
+### Bonus Points
+- **Technical win** (only if your Star Baker pick won Star Baker): +1
+- **Paul Hollywood handshake** for your Star Baker pick (win or not): +1 each
+- **Soggy bottom** for your Star Baker pick (win or not): -1 each
 
 ### Finalist Picks
-- **Correct finalist**: +3 points
+- **Each finalist pick who makes the final**: +3 — admins mark finalists on the Scoring page
+
+## Live Updates
+
+Dashboards poll every 20 seconds while visible and refresh when the tab regains
+focus, so results and picks reach everyone without a reload.
 
 ## Project Structure
 
@@ -121,6 +129,8 @@ src/
 │   └── dashboard/         # User dashboard
 ├── components/            # Reusable components
 ├── lib/                   # Utilities and configurations
+│   ├── scoring.ts        # Scoring rules + engine
+│   ├── leaderboard.ts    # Loads a season and scores it
 │   ├── auth.ts           # NextAuth configuration
 │   └── prisma.ts         # Database client
 └── prisma/               # Database schema and migrations
@@ -128,9 +138,9 @@ src/
 
 ## Tech Stack
 
-- **Frontend**: Next.js 14, React, TypeScript, Tailwind CSS
+- **Frontend**: Next.js 15, React 19, TypeScript, Tailwind CSS 4
 - **Backend**: Next.js API routes, Prisma ORM
-- **Database**: SQLite (development) / PostgreSQL (production)
+- **Database**: PostgreSQL
 - **Authentication**: NextAuth.js
 - **Styling**: Tailwind CSS
 
@@ -141,7 +151,7 @@ This app is ready for deployment on Vercel:
 1. **Connect to GitHub**: Push your code to GitHub
 2. **Deploy on Vercel**: Connect your GitHub repository to Vercel
 3. **Set Environment Variables**: Add your production database URL and NextAuth secret
-4. **Run Migrations**: Deploy and run `npx prisma migrate deploy`
+4. **Sync the schema**: run `npx prisma db push` against the production `DATABASE_URL`
 
 ## Contributing
 

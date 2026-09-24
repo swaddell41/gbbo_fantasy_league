@@ -72,7 +72,6 @@ export default function WeeklyPicks({ contestants, selectedEpisode, seasonId, on
   }
 
   const handleStarBakerClick = (contestantId: string) => {
-    console.log('Star Baker clicked:', contestantId)
     
     // Check if already selected (deselect)
     if (starBakerId === contestantId) {
@@ -91,7 +90,6 @@ export default function WeeklyPicks({ contestants, selectedEpisode, seasonId, on
   }
 
   const handleEliminationClick = (contestantId: string) => {
-    console.log('Elimination clicked:', contestantId)
     setEliminationId(eliminationId === contestantId ? null : contestantId)
   }
 

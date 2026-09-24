@@ -28,7 +28,7 @@ try {
   console.log('\n✅ Setup complete! Your app should be running at http://localhost:3000');
   console.log('\n📝 Next steps:');
   console.log('1. Set up your PostgreSQL database');
-  console.log('2. Run: npx prisma migrate dev --name init');
+  console.log('2. Run: npx prisma db push');
   console.log('3. Create an admin user in the database');
   console.log('4. Start making your picks!');
   

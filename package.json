@@ -8,9 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "setup": "node setup.js",
-    "db:migrate": "npx prisma migrate dev",
     "db:generate": "npx prisma generate",
-    "db:studio": "npx prisma studio"
+    "db:studio": "npx prisma studio",
+    "test": "node --test --experimental-strip-types --no-warnings src/lib/*.test.ts",
+    "db:push": "prisma db push"
   },
   "dependencies": {
     "@auth/prisma-adapter": "^2.10.0",

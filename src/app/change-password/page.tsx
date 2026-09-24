@@ -63,7 +63,7 @@ export default function ChangePassword() {
         
         // Redirect to appropriate dashboard after successful change
         setTimeout(() => {
-          if (session.user.isAdmin) {
+          if (session?.user.isAdmin) {
             router.push('/admin')
           } else {
             router.push('/dashboard')
