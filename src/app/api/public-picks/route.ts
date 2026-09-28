@@ -11,16 +11,9 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Season ID is required' }, { status: 400 })
     }
 
-    // Get all users for the season (excluding admins)
+    // Every non-admin user is in the league
     const users = await prisma.user.findMany({
-      where: {
-        isAdmin: false,
-        picks: {
-          some: {
-            seasonId: seasonId
-          }
-        }
-      },
+      where: { isAdmin: false },
       select: {
         id: true,
         name: true,

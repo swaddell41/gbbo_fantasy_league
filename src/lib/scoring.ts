@@ -70,7 +70,7 @@ export interface SeasonScores {
   completedEpisodes: number
 }
 
-function emptyBreakdown(userId: string): UserScoreBreakdown {
+export function emptyBreakdown(userId: string): UserScoreBreakdown {
   return {
     userId,
     totalScore: 0,

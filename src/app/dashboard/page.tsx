@@ -1,18 +1,19 @@
 'use client'
 
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
-import PublicPicks from '@/components/PublicPicks'
 import { usePolling } from '@/hooks/usePolling'
 import ScoringRules from '@/components/ScoringRules'
+import type { Baker } from './BakerGrid'
+import FinalistPicker from './FinalistPicker'
+import WeeklyPicker from './WeeklyPicker'
 
 interface Season {
   id: string
   name: string
   year: number
-  isActive: boolean
 }
 
 interface Episode {
@@ -20,414 +21,292 @@ interface Episode {
   title: string
   episodeNumber: number
   isActive: boolean
-  isCompleted: boolean
 }
 
-interface LeaderboardEntry {
+interface MyPick {
+  id: string
+  contestantId: string
+  episodeId: string | null
+  pickType: 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION'
+}
+
+interface SubmissionStatus {
+  allUsersSubmitted: boolean
+  submittedCount: number
+  totalCount: number
+  users: { id: string; name: string | null; hasSubmitted: boolean }[]
+}
+
+interface PlayerPicks {
+  user: { id: string; name: string | null }
+  weeklyPicks: { pickType: string; contestant: { name: string } }[]
+}
+
+interface Standing {
   rank: number
   userId: string
-  userName: string
-  userEmail: string
+  userName: string | null
   totalScore: number
-  weeklyScore: number
-  finalistScore: number
-  correctStarBaker: number
-  correctElimination: number
-  wrongStarBaker: number
-  wrongElimination: number
-  totalEpisodes: number
-  totalEpisodesWithPicks: number
-  technicalChallengeWins: number
-  handshakes: number
-  soggyBottoms: number
-  accuracy: number
+}
+
+const firstName = (name: string | null) => (name ?? 'Someone').split(' ')[0]
+
+function listNames(names: string[]) {
+  if (names.length <= 1) return names.join('')
+  return `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`
+}
+
+async function getJson<T>(url: string): Promise<T | null> {
+  const res = await fetch(url)
+  return res.ok ? res.json() : null
 }
 
 export default function Dashboard() {
-  const { data: session, status, update } = useSession()
+  const { data: session, status } = useSession()
   const router = useRouter()
-  const [refreshing, setRefreshing] = useState(false)
-  const [seasons, setSeasons] = useState<Season[]>([])
-  const [leaderboard, setLeaderboard] = useState<LeaderboardEntry[]>([])
-  const [loading, setLoading] = useState(true)
-  const [episodes, setEpisodes] = useState<Episode[]>([])
-  const [activeEpisode, setActiveEpisode] = useState<Episode | null>(null)
-  const [allUsersSubmitted, setAllUsersSubmitted] = useState(false)
+
+  const [season, setSeason] = useState<Season | null | undefined>(undefined)
+  const [episode, setEpisode] = useState<Episode | null>(null)
+  const [bakers, setBakers] = useState<Baker[]>([])
+  const [myPicks, setMyPicks] = useState<MyPick[]>([])
+  const [submission, setSubmission] = useState<SubmissionStatus | null>(null)
+  const [everyonesPicks, setEveryonesPicks] = useState<PlayerPicks[]>([])
+  const [standings, setStandings] = useState<Standing[]>([])
+  const [editingWeekly, setEditingWeekly] = useState(false)
 
   useEffect(() => {
     if (status === 'loading') return
-
-    if (!session) {
+    if (!session?.user) {
       router.push('/auth/signin')
-      return
-    }
-
-    // Check if user must change password
-    if (session.user.mustChangePassword) {
+    } else if (session.user.mustChangePassword) {
       router.push('/change-password')
-      return
-    }
-
-    if (session.user.isAdmin) {
+    } else if (session.user.isAdmin) {
       router.push('/admin')
-      return
-    }
-
-    // Fetch data for regular users
-    if (session && !session.user.isAdmin) {
-      fetchSeasons()
+    } else {
+      getJson<Season[]>('/api/seasons').then(seasons => setSeason(seasons?.[0] ?? null))
     }
   }, [session, status, router])
 
-  // Keep leaderboard, active episode and submission status fresh for everyone
-  const activeSeason = seasons.find(s => s.isActive)
-  const activeSeasonId = activeSeason?.id
-  const refreshSeason = useCallback(() => {
-    if (!activeSeasonId) return
-    fetchLeaderboard(activeSeasonId)
-    fetchEpisodes(activeSeasonId)
-  }, [activeSeasonId]) // eslint-disable-line react-hooks/exhaustive-deps
-  usePolling(refreshSeason)
+  const seasonId = season?.id
+  const refresh = useCallback(async () => {
+    if (!seasonId) return
+    const [episodes, contestants, picks, board] = await Promise.all([
+      getJson<Episode[]>(`/api/episodes?seasonId=${seasonId}`),
+      getJson<Baker[]>(`/api/contestants?seasonId=${seasonId}`),
+      getJson<MyPick[]>(`/api/user/picks?seasonId=${seasonId}`),
+      getJson<Standing[]>(`/api/scoring/leaderboard?seasonId=${seasonId}`),
+    ])
+    const active = episodes?.find(e => e.isActive) ?? null
+    setEpisode(active)
+    if (contestants) setBakers(contestants)
+    if (picks) setMyPicks(picks)
+    if (board) setStandings(board)
 
-  const fetchSeasons = async () => {
-    try {
-      const response = await fetch('/api/seasons')
-      if (response.ok) {
-        const data = await response.json()
-        setSeasons(data)
-        
-      }
-    } catch (error) {
-      console.error('Error fetching seasons:', error)
-    } finally {
-      setLoading(false)
+    if (!active) {
+      setSubmission(null)
+      setEveryonesPicks([])
+      return
     }
+    const statusNow = await getJson<SubmissionStatus>(`/api/episode-picks-status?episodeId=${active.id}`)
+    setSubmission(statusNow)
+    if (statusNow?.allUsersSubmitted) {
+      const data = await getJson<{ picksByUser: PlayerPicks[] }>(
+        `/api/public-picks?seasonId=${seasonId}&episodeId=${active.id}`
+      )
+      setEveryonesPicks(data?.picksByUser ?? [])
+    } else {
+      setEveryonesPicks([])
+    }
+  }, [seasonId])
+
+  usePolling(refresh)
+
+  const finalists = myPicks.filter(p => p.pickType === 'FINALIST')
+  const weekly = myPicks.filter(p => p.episodeId && p.episodeId === episode?.id)
+  const myStarBaker = weekly.find(p => p.pickType === 'STAR_BAKER')?.contestantId ?? null
+  const myElimination = weekly.find(p => p.pickType === 'ELIMINATION')?.contestantId ?? null
+  const hasWeeklyPicks = !!myStarBaker && !!myElimination
+  const bakerName = (id: string | null) => bakers.find(b => b.id === id)?.name ?? '—'
+
+  const starBakerUses = useMemo(() => {
+    const uses = new Map<string, number>()
+    for (const p of myPicks) {
+      if (p.pickType === 'STAR_BAKER' && p.episodeId !== episode?.id) {
+        uses.set(p.contestantId, (uses.get(p.contestantId) ?? 0) + 1)
+      }
+    }
+    return uses
+  }, [myPicks, episode?.id])
+
+  const submitPicks = async (picks: Omit<MyPick, 'id'>[]) => {
+    const res = await fetch('/api/user/picks', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ seasonId, picks }),
+    })
+    if (!res.ok) {
+      alert('Sorry, your picks could not be saved. Please try again.')
+      return
+    }
+    setEditingWeekly(false)
+    await refresh()
   }
 
-  const fetchLeaderboard = async (seasonId: string) => {
-    try {
-      const response = await fetch(`/api/scoring/leaderboard?seasonId=${seasonId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setLeaderboard(data)
-      }
-    } catch (error) {
-      console.error('Error fetching leaderboard:', error)
-    }
-  }
-
-  const fetchEpisodes = async (seasonId: string) => {
-    try {
-      const response = await fetch(`/api/episodes?seasonId=${seasonId}`)
-      if (response.ok) {
-        const data = await response.json()
-        setEpisodes(data)
-        
-        // Find the active episode
-        const active = data.find((ep: Episode) => ep.isActive)
-        if (active) {
-          setActiveEpisode(active)
-          checkAllUsersSubmitted(active.id)
-        }
-      }
-    } catch (error) {
-      console.error('Error fetching episodes:', error)
-    }
-  }
-
-  const checkAllUsersSubmitted = async (episodeId?: string) => {
-    const episodeToCheck = episodeId || activeEpisode?.id
-    if (!episodeToCheck) return
-    
-    try {
-      const response = await fetch(`/api/episode-picks-status?episodeId=${episodeToCheck}`)
-      if (response.ok) {
-        const data = await response.json()
-        setAllUsersSubmitted(data.allUsersSubmitted)
-      }
-    } catch (error) {
-      console.error('Error checking submission status:', error)
-    }
-  }
-
-  if (status === 'loading' || loading) {
+  if (status === 'loading' || season === undefined) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
+      <div className="min-h-screen flex items-center justify-center bg-amber-50">
+        <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-600" />
       </div>
     )
   }
 
-  if (!session) {
-    return null
-  }
+  const waitingOn = submission?.users.filter(u => !u.hasSubmitted).map(u => firstName(u.name)) ?? []
+  const needsFinalists = !!season && finalists.length < 3
+  const needsWeekly = !!episode && !hasWeeklyPicks
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-6">
-            Welcome back, {session.user.name}! 👋
-          </h1>
-          
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {/* Current Season - Smaller, more informational */}
-            <div className="bg-amber-50 p-4 rounded-lg border border-amber-200">
-              <h3 className="text-md font-semibold text-amber-800 mb-2">Current Season</h3>
-              {seasons.length > 0 ? (
-                <div>
-                  <p className="text-amber-700 font-medium">
-                    {seasons.find(s => s.isActive)?.name || 'No active season'}
-                  </p>
-                  <p className="text-sm text-amber-600 mt-1">
-                    {seasons.find(s => s.isActive)?.year || 'Check back soon!'}
-                  </p>
-                </div>
-              ) : (
-                <p className="text-amber-700">No seasons available yet</p>
-              )}
-            </div>
-            
-            <div className="bg-blue-50 p-6 rounded-lg border border-blue-200">
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Make Picks</h3>
-              <p className="text-blue-700">Make your weekly picks and finalist selections</p>
-              <p className="text-sm text-blue-600 mt-2">Compete with your friends!</p>
-              <Link
-                href="/user-dashboard"
-                className="mt-3 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200 inline-block"
-              >
-                Go to Fantasy League
-              </Link>
-            </div>
-            
-            {/* Leaderboard Preview */}
-            <div className="bg-green-50 p-6 rounded-lg border border-green-200">
-              <h3 className="text-lg font-semibold text-green-800 mb-2">Your Position</h3>
-              {leaderboard.length > 0 ? (
-                <div>
-                  <p className="text-green-700 font-medium">
-                    Position: #{leaderboard.find(entry => entry.userId === session.user?.id)?.rank || 'N/A'}
-                  </p>
-                  <p className="text-sm text-green-600 mt-1">
-                    {leaderboard.find(entry => entry.userId === session.user?.id)?.totalScore || 0} points
-                  </p>
-                </div>
-              ) : (
-                <p className="text-green-700">Start playing to see your ranking!</p>
-              )}
-            </div>
+    <div className="min-h-screen bg-amber-50">
+      <div className="mx-auto max-w-3xl px-4 py-6 space-y-5">
+        <header className="flex items-start justify-between gap-4">
+          <div>
+            <p className="text-sm font-medium text-amber-700">🧁 Bake Off League</p>
+            <h1 className="text-2xl font-bold text-gray-900">
+              {season ? `${season.name} · ${season.year}` : 'Bake Off League'}
+            </h1>
           </div>
-
-          {/* Episode Status */}
-          {activeEpisode && (
-            <div className="mt-8">
-              <div className="bg-amber-50 p-4 rounded-lg mb-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-semibold text-amber-800">
-                      {activeEpisode.title} - Episode {activeEpisode.episodeNumber}
-                    </h4>
-                    <p className="text-sm text-amber-700">
-                      {allUsersSubmitted 
-                        ? '🎉 All players have submitted their picks!' 
-                        : '⏳ Waiting for all players to submit their picks...'
-                      }
-                    </p>
-                  </div>
-                  {allUsersSubmitted && (
-                    <div className="text-right">
-                      <div className="text-2xl">🎉</div>
-                      <div className="text-xs text-amber-600">Ready to watch!</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-          )}
-          
-          {/* Full Leaderboard */}
-          {leaderboard.length > 0 && (
-            <div className="mt-8">
-              <div className="flex justify-between items-center mb-6">
-                <h3 className="text-2xl font-bold text-gray-900">League Leaderboard</h3>
-                <button 
-                  onClick={() => {
-                    const activeSeason = seasons.find(s => s.isActive)
-                    if (activeSeason) fetchLeaderboard(activeSeason.id)
-                  }}
-                  className="text-blue-600 hover:text-blue-700 text-sm font-medium"
-                >
-                  Refresh
-                </button>
-              </div>
-
-              <div className="space-y-3">
-                {leaderboard.map((entry) => (
-                  <div
-                    key={entry.userId}
-                    className={`p-4 rounded-lg border-2 transition-colors duration-200 ${
-                      entry.rank === 1
-                        ? 'border-yellow-400 bg-yellow-50'
-                        : entry.rank === 2
-                        ? 'border-gray-300 bg-gray-50'
-                        : entry.rank === 3
-                        ? 'border-orange-400 bg-orange-50'
-                        : 'border-gray-200 bg-white'
-                    }`}
-                  >
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-4">
-                        <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold ${
-                          entry.rank === 1
-                            ? 'bg-yellow-400 text-yellow-900'
-                            : entry.rank === 2
-                            ? 'bg-gray-300 text-gray-900'
-                            : entry.rank === 3
-                            ? 'bg-orange-400 text-orange-900'
-                            : 'bg-gray-200 text-gray-700'
-                        }`}>
-                          {entry.rank}
-                        </div>
-                        <div>
-                          <h4 className="font-semibold text-gray-900">{entry.userName}</h4>
-                          <p className="text-sm text-gray-600">{entry.userEmail}</p>
-                        </div>
-                      </div>
-                      
-                      <div className="text-right">
-                        <div className="text-2xl font-bold text-gray-900">{entry.totalScore}</div>
-                        <div className="text-sm text-gray-600">points</div>
-                      </div>
-                    </div>
-
-                    {/* Episode Summary */}
-                    <div className="mt-3 text-sm text-gray-600">
-                      <span className="font-medium">Episodes with picks:</span> {entry.totalEpisodesWithPicks || entry.totalEpisodes}
-                      {entry.totalEpisodes > 0 && (
-                        <span className="ml-2">
-                          ({entry.totalEpisodes} completed)
-                        </span>
-                      )}
-                    </div>
-
-                    {/* Detailed stats */}
-                    <div className="mt-3 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                      <div>
-                        <div className="font-medium" style={{color: '#000000'}}>Weekly Score</div>
-                        <div className="font-semibold">{entry.weeklyScore}</div>
-                      </div>
-                      <div>
-                        <div className="font-medium" style={{color: '#000000'}}>Accuracy</div>
-                        <div className="font-semibold">{entry.accuracy}%</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-600">Star Baker</div>
-                        <div className="font-semibold text-green-600">
-                          {entry.correctStarBaker}/{entry.totalEpisodesWithPicks || entry.totalEpisodes}
-                        </div>
-                        {entry.wrongStarBaker > 0 && (
-                          <div className="text-xs text-red-600">
-                            {entry.wrongStarBaker} wrong
-                          </div>
-                        )}
-                      </div>
-                      <div>
-                        <div className="text-gray-600">Elimination</div>
-                        <div className="font-semibold text-green-600">
-                          {entry.correctElimination}/{entry.totalEpisodesWithPicks || entry.totalEpisodes}
-                        </div>
-                        {entry.wrongElimination > 0 && (
-                          <div className="text-xs text-red-600">
-                            {entry.wrongElimination} wrong
-                          </div>
-                        )}
-                      </div>
-                    </div>
-
-                    {/* Bonus Points */}
-                    <div className="mt-3 grid grid-cols-3 gap-4 text-sm">
-                      <div>
-                        <div className="text-gray-600">Technical Wins</div>
-                        <div className="font-semibold text-blue-600">+{entry.technicalChallengeWins}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-600">Handshakes</div>
-                        <div className="font-semibold text-yellow-600">+{entry.handshakes}</div>
-                      </div>
-                      <div>
-                        <div className="text-gray-600">Soggy Bottoms</div>
-                        <div className="font-semibold text-red-600">-{entry.soggyBottoms}</div>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              <ScoringRules embedded />
-            </div>
-          )}
-
-          {/* Public Picks - Show when all users have submitted */}
-          {allUsersSubmitted && activeEpisode && activeSeason && (
-            <div className="mt-8">
-              <div className="bg-green-50 p-6 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-green-800 mb-4">
-                  🎉 All Picks Are In! 
-                  <span className="text-sm font-normal text-green-600 ml-2">
-                    Here&rsquo;s what everyone picked for {activeEpisode.title}
-                  </span>
-                </h3>
-                <PublicPicks
-                  seasonId={activeSeason.id}
-                  episodeId={activeEpisode.id}
-                  showFinalists={false}
-                  showWeekly={true}
-                />
-              </div>
-            </div>
-          )}
-
-
-          {/* Getting Started - Only show if no leaderboard data */}
-          {leaderboard.length === 0 && (
-            <div className="mt-8 p-6 bg-gray-50 rounded-lg">
-              <h3 className="text-lg font-semibold text-gray-800 mb-2">Getting Started</h3>
-              <p className="text-gray-600">
-                The admin will set up the current season and contestants soon. Once that&apos;s done, 
-                you&apos;ll be able to make your weekly picks and start competing with your friends!
-              </p>
-            </div>
-          )}
-          
-          <div className="mt-6 text-center space-x-4">
-            <Link
-              href="/change-password"
-              className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 inline-block"
-            >
-              Change Password
+          <div className="flex items-center gap-3 text-sm">
+            <Link href="/change-password" className="text-gray-500 hover:text-gray-800">
+              Password
             </Link>
-            <button
-              onClick={async () => {
-                setRefreshing(true)
-                await update()
-                setRefreshing(false)
-              }}
-              disabled={refreshing}
-              className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50"
-            >
-              {refreshing ? 'Refreshing...' : 'Refresh Session'}
-            </button>
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="bg-red-600 hover:bg-red-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
-            >
-              Sign Out
+            <button onClick={() => signOut({ callbackUrl: '/' })} className="text-gray-500 hover:text-gray-800">
+              Sign out
             </button>
           </div>
-        </div>
+        </header>
+
+        {!season ? (
+          <section className="rounded-2xl bg-white p-6 shadow-sm">
+            <p className="text-gray-700">No season is running right now — check back when the next series starts.</p>
+          </section>
+        ) : (
+          <>
+            {/* To do */}
+            <section className="rounded-2xl bg-white p-5 shadow-sm space-y-5">
+              <h2 className="text-lg font-semibold text-gray-900">
+                {needsFinalists || needsWeekly ? 'To do' : '✅ You’re all set'}
+              </h2>
+
+              {needsFinalists ? (
+                <div className="rounded-xl border border-violet-200 p-4 space-y-3">
+                  <h3 className="font-semibold text-violet-800">🏆 Pick your 3 finalists</h3>
+                  <FinalistPicker
+                    bakers={bakers}
+                    onSave={ids => submitPicks(ids.map(contestantId => ({ contestantId, pickType: 'FINALIST', episodeId: null })))}
+                  />
+                </div>
+              ) : (
+                <p className="text-sm text-gray-600">
+                  🏆 Your finalists: <span className="font-medium text-gray-900">{listNames(finalists.map(f => bakerName(f.contestantId)))}</span>
+                </p>
+              )}
+
+              {!episode ? (
+                <p className="text-sm text-gray-600">No episode is open for picks right now.</p>
+              ) : needsWeekly || editingWeekly ? (
+                <div className="rounded-xl border border-amber-200 p-4 space-y-3">
+                  <h3 className="font-semibold text-amber-800">
+                    Episode {episode.episodeNumber} · {episode.title}
+                  </h3>
+                  <WeeklyPicker
+                    key={episode.id}
+                    bakers={bakers}
+                    initialStarBakerId={myStarBaker}
+                    initialEliminationId={myElimination}
+                    starBakerUses={starBakerUses}
+                    onCancel={hasWeeklyPicks ? () => setEditingWeekly(false) : undefined}
+                    onSave={(sb, elim) =>
+                      submitPicks([
+                        { contestantId: sb, pickType: 'STAR_BAKER', episodeId: episode.id },
+                        { contestantId: elim, pickType: 'ELIMINATION', episodeId: episode.id },
+                      ])
+                    }
+                  />
+                </div>
+              ) : (
+                <div className="flex items-center justify-between gap-3 text-sm">
+                  <p className="text-gray-600">
+                    Episode {episode.episodeNumber}: ⭐ <span className="font-medium text-gray-900">{bakerName(myStarBaker)}</span>
+                    {' · '}👋 <span className="font-medium text-gray-900">{bakerName(myElimination)}</span>
+                  </p>
+                  <button onClick={() => setEditingWeekly(true)} className="shrink-0 text-amber-700 hover:underline">
+                    Change
+                  </button>
+                </div>
+              )}
+            </section>
+
+            {/* This week */}
+            {episode && submission && (
+              <section className="rounded-2xl bg-white p-5 shadow-sm">
+                <h2 className="text-lg font-semibold text-gray-900">
+                  Episode {episode.episodeNumber} · {episode.title}
+                </h2>
+                {submission.allUsersSubmitted ? (
+                  <table className="mt-3 w-full text-sm">
+                    <thead className="text-left text-gray-500">
+                      <tr>
+                        <th className="py-1 font-medium">Player</th>
+                        <th className="py-1 font-medium">⭐ Star Baker</th>
+                        <th className="py-1 font-medium">👋 Going home</th>
+                      </tr>
+                    </thead>
+                    <tbody className="divide-y divide-gray-100 text-gray-900">
+                      {everyonesPicks.map(p => (
+                        <tr key={p.user.id}>
+                          <td className="py-2">{firstName(p.user.name)}</td>
+                          <td className="py-2">{p.weeklyPicks.find(w => w.pickType === 'STAR_BAKER')?.contestant.name}</td>
+                          <td className="py-2">{p.weeklyPicks.find(w => w.pickType === 'ELIMINATION')?.contestant.name}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="mt-1 text-sm text-gray-600">
+                    {submission.submittedCount} of {submission.totalCount} picks in — waiting on {listNames(waitingOn)}.
+                    Everyone’s picks appear here once they’re all in.
+                  </p>
+                )}
+              </section>
+            )}
+
+            {/* Standings */}
+            <section className="rounded-2xl bg-white p-5 shadow-sm">
+              <h2 className="text-lg font-semibold text-gray-900">Standings</h2>
+              {standings.length === 0 ? (
+                <p className="mt-1 text-sm text-gray-600">Points appear once the first picked episode is scored.</p>
+              ) : (
+                <ol className="mt-3 divide-y divide-gray-100">
+                  {standings.map(s => (
+                    <li
+                      key={s.userId}
+                      className={`flex items-center justify-between py-2 ${s.userId === session?.user?.id ? 'font-semibold' : ''}`}
+                    >
+                      <span className="text-gray-900">
+                        <span className="inline-block w-6 text-gray-400">{s.rank}</span>
+                        {s.userName}
+                      </span>
+                      <span className="text-gray-900">{s.totalScore} pts</span>
+                    </li>
+                  ))}
+                </ol>
+              )}
+              <details className="mt-4 text-sm">
+                <summary className="cursor-pointer text-gray-500">How scoring works</summary>
+                <ScoringRules embedded />
+              </details>
+            </section>
+          </>
+        )}
       </div>
     </div>
   )
