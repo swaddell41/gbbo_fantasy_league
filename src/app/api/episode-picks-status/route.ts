@@ -1,8 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
+import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
 export async function GET(request: NextRequest) {
   try {
+    const session = await getServerSession(authOptions)
+    if (!session?.user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
     const { searchParams } = new URL(request.url)
     const episodeId = searchParams.get('episodeId')
 
@@ -22,16 +29,10 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Episode not found' }, { status: 404 })
     }
 
-    // Get all non-admin users who have picks in this season
+    // Every non-admin user is in the league, whether or not they've picked yet.
+    // (Counting only users with picks made an empty new season read as "all in".)
     const users = await prisma.user.findMany({
-      where: {
-        isAdmin: false,
-        picks: {
-          some: {
-            seasonId: episode.seasonId
-          }
-        }
-      },
+      where: { isAdmin: false },
       select: {
         id: true,
         name: true
@@ -69,7 +70,7 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    const allUsersSubmitted = users.every(user => usersWithCompletePicks.has(user.id))
+    const allUsersSubmitted = users.length > 0 && users.every(user => usersWithCompletePicks.has(user.id))
     const submittedCount = usersWithCompletePicks.size
     const totalCount = users.length
 

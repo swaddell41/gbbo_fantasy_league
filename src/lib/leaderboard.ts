@@ -1,5 +1,5 @@
 import { prisma } from '@/lib/prisma'
-import { scoreSeason, type SeasonScores } from '@/lib/scoring'
+import { emptyBreakdown, scoreSeason, type SeasonScores } from '@/lib/scoring'
 
 // Loads a season's picks + results and runs them through the scoring engine.
 export async function computeSeasonScores(seasonId: string): Promise<SeasonScores> {
@@ -39,13 +39,17 @@ export async function computeSeasonScores(seasonId: string): Promise<SeasonScore
 
 export async function getLeaderboard(seasonId: string) {
   const scores = await computeSeasonScores(seasonId)
+  // Every non-admin user is in the league, so list them even before they pick
   const users = await prisma.user.findMany({
-    where: { id: { in: [...scores.users.keys()] } },
+    where: { isAdmin: false },
     select: { id: true, name: true, email: true },
+    orderBy: { name: 'asc' },
   })
   const usersById = new Map(users.map(u => [u.id, u]))
 
-  const entries = [...scores.users.values()].sort((a, b) => b.totalScore - a.totalScore)
+  const entries = users
+    .map(u => scores.users.get(u.id) ?? emptyBreakdown(u.id))
+    .sort((a, b) => b.totalScore - a.totalScore)
 
   return entries.map(entry => {
     const user = usersById.get(entry.userId)
