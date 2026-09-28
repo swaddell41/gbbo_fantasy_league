@@ -11,7 +11,10 @@ export async function GET() {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
+    // Players only ever see the current season; admins manage all seasons
+    // through /api/admin/seasons
     const seasons = await prisma.season.findMany({
+      where: { isActive: true },
       orderBy: { createdAt: 'desc' }
     })
 
