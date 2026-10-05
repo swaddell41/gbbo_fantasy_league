@@ -1,26 +1,30 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+/* "The Tent" design tokens — see design/README.md */
+@theme {
+  --color-cream: #faf6ef;
+  --color-card: #fffdf9;
+  --color-oat: #f1ebe2;
+  --color-oat-track: #efe7dc;
+  --color-ink: #2b2420;
+  --color-ink-muted: #5e534b;
+  --color-ink-faint: #8a7d72;
+  --color-line: #ece4d9;
+  --color-input: #e3d9cc;
+  --color-dash: #b9ada2;
+  --color-rose: #d9677a;
+  --color-rose-deep: #b8475c;
+  --color-rose-dark: #8f3446;
+  --color-rose-tint: #fbe9ec;
+  --color-blue: #3f9bc4;
+  --color-blue-deep: #2f7ea3;
+  --color-flag: #efe2c8;
+  --color-positive: #2f7a4f;
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --font-display: var(--font-dm-serif), Georgia, serif;
+  --font-sans: var(--font-karla), system-ui, sans-serif;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-sans);
 }
