@@ -79,7 +79,7 @@ export function PhotoGrid({
             style={{ boxShadow: t.selected ? `0 0 0 3px ${t.ringColor}` : 'none', opacity: t.dimmed ? 0.4 : 1 }}
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src={b.imageUrl ?? ''} alt="" className="block w-full flex-none object-cover" style={{ height: photoHeight }} />
+            <img src={b.imageUrl ?? ''} alt="" className="block w-full flex-none object-cover object-[50%_20%]" style={{ height: photoHeight }} />
             <div className="px-2.5 py-2">
               <div className="text-[15px] font-bold text-ink">{b.name}</div>
               <div className="min-h-[15px] text-xs text-ink-muted">{t.note}</div>

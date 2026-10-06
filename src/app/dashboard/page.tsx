@@ -121,7 +121,7 @@ function PickCard({
   return (
     <button onClick={onPick} className="overflow-hidden rounded-[18px] border-2 border-rose bg-card text-left md:rounded-[20px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img src={baker.imageUrl ?? ''} alt="" className="block h-[130px] w-full object-cover md:h-[240px]" />
+      <img src={baker.imageUrl ?? ''} alt="" className="block h-[130px] w-full object-cover object-[50%_20%] md:h-[240px]" />
       <div className="flex items-center justify-between px-3 py-2.5 md:px-5 md:py-4">
         <div>
           <div className={`text-[11px] font-bold uppercase tracking-[.08em] md:text-[13px] ${labelClass}`}>{label}</div>
@@ -369,7 +369,7 @@ export default function Dashboard() {
                             ].map(({ label, cls, b }) => (
                               <div key={label} className="min-w-0 flex-1">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={b?.imageUrl ?? ''} alt="" className="block h-[92px] w-full rounded-xl object-cover" />
+                                <img src={b?.imageUrl ?? ''} alt="" className="block aspect-[4/3] w-full rounded-xl object-cover object-[50%_20%]" />
                                 <div className={`mt-1.5 text-xs font-bold uppercase tracking-[.08em] ${cls}`}>{label}</div>
                                 <div className="truncate font-display text-[22px]">{b?.name}</div>
                               </div>
