@@ -442,24 +442,24 @@ export default function ManageEpisodes() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-cream py-8">
       <div className="max-w-7xl mx-auto px-4">
         <div className="mb-8">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+          <Link href="/admin" className="text-rose-deep hover:text-rose-dark mb-4 inline-block">
             ← Back to Admin Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-gray-900">Episode Management</h1>
-          <p className="text-gray-600 mt-2">Create, manage episodes, and set results for each season</p>
+          <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Episode Management</h1>
+          <p className="text-ink-muted mt-2">Create, manage episodes, and set results for each season</p>
         </div>
 
         {/* Season Selection */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
+        <div className="bg-card rounded-2xl p-6 mb-6">
           <div className="flex justify-between items-center mb-4">
-            <h2 className="text-xl font-semibold">Select Season</h2>
+            <h2 className="font-display font-normal text-[28px] ">Select Season</h2>
             {selectedSeason && (
               <button
                 onClick={recalculateEliminationStatus}
-                className="bg-yellow-500 hover:bg-yellow-600 text-white px-4 py-2 rounded-lg transition-colors"
+                className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors"
               >
                 Recalculate Elimination Status
               </button>
@@ -470,15 +470,15 @@ export default function ManageEpisodes() {
               <button
                 key={season.id}
                 onClick={() => setSelectedSeason(season)}
-                className={`p-4 rounded-lg border-2 transition-colors ${
+                className={`p-4 rounded-2xl border-2 transition-colors ${
                   selectedSeason?.id === season.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-rose bg-oat'
+                    : 'border-input hover:border-input'
                 }`}
               >
                 <h3 className="font-semibold">{season.name}</h3>
-                <p className="text-sm text-gray-600">Year: {season.year}</p>
-                <p className={`text-sm ${season.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                <p className="text-sm text-ink-muted">Year: {season.year}</p>
+                <p className={`text-sm ${season.isActive ? 'text-positive' : 'text-ink-faint'}`}>
                   {season.isActive ? 'Active' : 'Inactive'}
                 </p>
               </button>
@@ -489,33 +489,33 @@ export default function ManageEpisodes() {
         {selectedSeason && (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {/* Left Column - Episodes List */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-2xl p-6">
               <div className="flex justify-between items-center mb-4">
-                <h2 className="text-xl font-semibold">Episodes for {selectedSeason.name}</h2>
+                <h2 className="font-display font-normal text-[28px] ">Episodes for {selectedSeason.name}</h2>
                 <button
                   onClick={() => setShowForm(!showForm)}
-                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                  className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200"
                 >
                   {showForm ? 'Cancel' : 'Add Episode'}
                 </button>
               </div>
 
               {episodes.length === 0 ? (
-                <p className="text-gray-500">No episodes created yet</p>
+                <p className="text-ink-faint">No episodes created yet</p>
               ) : (
                 <div className="space-y-3">
                   {episodes.map((episode) => (
-                    <div key={episode.id} className="p-4 border rounded-lg">
+                    <div key={episode.id} className="p-4 border rounded-2xl">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-semibold text-black">Episode {episode.episodeNumber}: {episode.title}</h3>
-                          <p className="text-sm text-black">
+                          <h3 className="font-semibold text-ink">Episode {episode.episodeNumber}: {episode.title}</h3>
+                          <p className="text-sm text-ink">
                             Air Date: {new Date(episode.airDate).toLocaleDateString()}
                           </p>
-                          <p className={`text-sm ${episode.isActive ? 'text-green-600' : 'text-gray-500'}`}>
+                          <p className={`text-sm ${episode.isActive ? 'text-positive' : 'text-ink-faint'}`}>
                             {episode.isActive ? 'Active' : 'Inactive'}
                           </p>
-                          <p className="text-xs text-black mt-1">
+                          <p className="text-xs text-ink mt-1">
                             {episode.isCompleted ? '✅ Completed' : '⏳ Pending'}
                           </p>
                         </div>
@@ -525,19 +525,19 @@ export default function ManageEpisodes() {
                               setSelectedEpisode(episode)
                               setShowResults(true)
                             }}
-                            className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                            className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-3 py-1 rounded-full text-xs transition-colors duration-200"
                           >
                             Results
                           </button>
                           <button
                             onClick={() => shareToWhatsApp(episode)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                            className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-3 py-1 rounded-full text-xs transition-colors duration-200"
                           >
                             📱 Share
                           </button>
                           <button
                             onClick={() => startEditing(episode)}
-                            className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                            className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-3 py-1 rounded-full text-xs transition-colors duration-200"
                           >
                             Edit
                           </button>
@@ -545,15 +545,15 @@ export default function ManageEpisodes() {
                             onClick={() => toggleEpisodeActive(episode.id, episode.isActive)}
                             className={`px-3 py-1 rounded text-xs transition-colors duration-200 ${
                               episode.isActive 
-                                ? 'bg-yellow-600 hover:bg-yellow-700 text-white' 
-                                : 'bg-green-600 hover:bg-green-700 text-white'
+                                ? 'bg-rose text-ink font-bold hover:brightness-105' 
+                                : 'bg-ink text-cream font-bold hover:bg-[#3d342e]'
                             }`}
                           >
                             {episode.isActive ? 'Deactivate' : 'Activate'}
                           </button>
                           <button
                             onClick={() => deleteEpisode(episode.id, episode.title)}
-                            className="bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded text-xs transition-colors duration-200"
+                            className="bg-rose-deep text-cream font-bold hover:bg-rose-dark px-3 py-1 rounded-full text-xs transition-colors duration-200"
                           >
                             Delete
                           </button>
@@ -566,16 +566,16 @@ export default function ManageEpisodes() {
             </div>
 
             {/* Right Column - Episode Form or Results */}
-            <div className="bg-white rounded-lg shadow p-6">
+            <div className="bg-card rounded-2xl p-6">
               {showResults && selectedEpisode ? (
                 <div>
                   <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-semibold text-black">
+                    <h2 className="font-display font-normal text-[28px] text-ink">
                       Results for Episode {selectedEpisode.episodeNumber}: {selectedEpisode.title}
                     </h2>
                     <button
                       onClick={() => setShowResults(false)}
-                      className="text-gray-500 hover:text-gray-700"
+                      className="text-ink-faint hover:text-ink-muted"
                     >
                       ✕
                     </button>
@@ -583,7 +583,7 @@ export default function ManageEpisodes() {
 
                   {/* Star Baker Selection */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-black mb-3">Star Baker</h3>
+                    <h3 className="font-display font-normal text-2xl text-ink mb-3">Star Baker</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {contestants
                         .sort((a, b) => {
@@ -600,12 +600,12 @@ export default function ManageEpisodes() {
                             key={`star-${contestant.id}`}
                             onClick={() => !isEliminated && handleResultChange('starBakerId', contestant.id)}
                             disabled={isEliminated}
-                            className={`p-2 rounded-lg border-2 transition-colors text-left ${
+                            className={`p-2 rounded-2xl border-2 transition-colors text-left ${
                               isSelected
-                                ? 'border-yellow-500 bg-yellow-100'
+                                ? 'border-rose bg-oat'
                                 : isEliminated
-                                ? 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                                : 'border-gray-200 hover:border-yellow-300'
+                                ? 'border-input bg-oat opacity-60 cursor-not-allowed'
+                                : 'border-input hover:border-line'
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -616,7 +616,7 @@ export default function ManageEpisodes() {
                                   className="w-6 h-6 rounded-full object-cover"
                                 />
                               )}
-                              <span className="font-medium text-black">
+                              <span className="font-medium text-ink">
                                 {contestant.name}
                                 {isEliminated && ' (Eliminated)'}
                                 {isSelected && ' ✓'}
@@ -630,7 +630,7 @@ export default function ManageEpisodes() {
 
                   {/* Elimination Selection */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-black mb-3">Elimination</h3>
+                    <h3 className="font-display font-normal text-2xl text-ink mb-3">Elimination</h3>
                     <div className="grid grid-cols-2 gap-2">
                       {contestants
                         .sort((a, b) => {
@@ -647,12 +647,12 @@ export default function ManageEpisodes() {
                             key={`elim-${contestant.id}`}
                             onClick={() => !isEliminated && handleResultChange('eliminatedId', contestant.id)}
                             disabled={isEliminated}
-                            className={`p-2 rounded-lg border-2 transition-colors text-left ${
+                            className={`p-2 rounded-2xl border-2 transition-colors text-left ${
                               isSelected
-                                ? 'border-red-500 bg-red-100'
+                                ? 'border-rose-deep bg-oat'
                                 : isEliminated
-                                ? 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                                : 'border-gray-200 hover:border-red-300'
+                                ? 'border-input bg-oat opacity-60 cursor-not-allowed'
+                                : 'border-input hover:border-line'
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -663,7 +663,7 @@ export default function ManageEpisodes() {
                                   className="w-6 h-6 rounded-full object-cover"
                                 />
                               )}
-                              <span className="font-medium text-black">
+                              <span className="font-medium text-ink">
                                 {contestant.name}
                                 {isEliminated && ' (Eliminated)'}
                                 {isSelected && ' ✓'}
@@ -677,8 +677,8 @@ export default function ManageEpisodes() {
 
                   {/* Technical Challenge Winner */}
                   <div className="mb-6">
-                    <h4 className="text-md font-semibold text-blue-800 mb-3">Technical Challenge Winner</h4>
-                    <p className="text-sm text-black mb-3">+1 point for Star Baker picks</p>
+                    <h4 className="text-md font-semibold text-ink mb-3">Technical Challenge Winner</h4>
+                    <p className="text-sm text-ink mb-3">+1 point for Star Baker picks</p>
                     <div className="space-y-2">
                       {contestants
                         .sort((a, b) => {
@@ -695,12 +695,12 @@ export default function ManageEpisodes() {
                             key={`tech-${contestant.id}`}
                             onClick={() => !isEliminated && handleResultChange('technicalChallengeWinnerId', contestant.id)}
                             disabled={isEliminated}
-                            className={`w-full p-2 rounded-lg border-2 transition-colors text-left ${
+                            className={`w-full p-2 rounded-2xl border-2 transition-colors text-left ${
                               isSelected
-                                ? 'border-blue-500 bg-blue-100'
+                                ? 'border-rose bg-oat'
                                 : isEliminated
-                                ? 'border-gray-300 bg-gray-100 opacity-60 cursor-not-allowed'
-                                : 'border-gray-200 hover:border-blue-300'
+                                ? 'border-input bg-oat opacity-60 cursor-not-allowed'
+                                : 'border-input hover:border-line'
                             }`}
                           >
                             <div className="flex items-center gap-2">
@@ -711,7 +711,7 @@ export default function ManageEpisodes() {
                                   className="w-6 h-6 rounded-full object-cover"
                                 />
                               )}
-                              <span className="text-sm font-medium text-black">
+                              <span className="text-sm font-medium text-ink">
                                 {contestant.name}
                                 {isEliminated && ' (Eliminated)'}
                                 {isSelected && ' ✓'}
@@ -725,8 +725,8 @@ export default function ManageEpisodes() {
 
                   {/* Handshakes */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-black mb-3">Handshakes</h3>
-                    <p className="text-sm text-black mb-3">+1 point for Star Baker picks</p>
+                    <h3 className="font-display font-normal text-2xl text-ink mb-3">Handshakes</h3>
+                    <p className="text-sm text-ink mb-3">+1 point for Star Baker picks</p>
                     <div className="space-y-2">
                       {contestants
                         .sort((a, b) => {
@@ -739,7 +739,7 @@ export default function ManageEpisodes() {
                         const isEliminated = contestant.isEliminated
                         const count = results.handshakes[contestant.id] || 0
                         return (
-                          <div key={`handshake-${contestant.id}`} className={`flex items-center gap-2 p-2 border rounded-lg ${
+                          <div key={`handshake-${contestant.id}`} className={`flex items-center gap-2 p-2 border rounded-2xl ${
                             isEliminated ? 'opacity-60' : ''
                           }`}>
                             {contestant.imageUrl && (
@@ -749,22 +749,22 @@ export default function ManageEpisodes() {
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                             )}
-                            <span className="text-sm font-medium text-black flex-1">
+                            <span className="text-sm font-medium text-ink flex-1">
                               {contestant.name}
                               {isEliminated && ' (Eliminated)'}
                             </span>
                             <button
                               onClick={() => !isEliminated && handleHandshakeChange(contestant.id, -1)}
                               disabled={isEliminated}
-                              className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white w-6 h-6 rounded-full text-sm"
+                              className="bg-rose-deep text-cream font-bold hover:bg-rose-dark disabled:opacity-40 disabled:cursor-not-allowed w-6 h-6 rounded-full text-sm"
                             >
                               -
                             </button>
-                            <span className="w-8 text-center text-sm font-medium text-black">{count}</span>
+                            <span className="w-8 text-center text-sm font-medium text-ink">{count}</span>
                             <button
                               onClick={() => !isEliminated && handleHandshakeChange(contestant.id, 1)}
                               disabled={isEliminated}
-                              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white w-6 h-6 rounded-full text-sm"
+                              className="bg-ink text-cream font-bold hover:bg-[#3d342e] disabled:opacity-40 disabled:cursor-not-allowed w-6 h-6 rounded-full text-sm"
                             >
                               +
                             </button>
@@ -776,8 +776,8 @@ export default function ManageEpisodes() {
 
                   {/* Soggy Bottoms */}
                   <div className="mb-6">
-                    <h3 className="text-lg font-semibold text-black mb-3">Soggy Bottoms</h3>
-                    <p className="text-sm text-black mb-3">-1 point for Star Baker picks</p>
+                    <h3 className="font-display font-normal text-2xl text-ink mb-3">Soggy Bottoms</h3>
+                    <p className="text-sm text-ink mb-3">-1 point for Star Baker picks</p>
                     <div className="space-y-2">
                       {contestants
                         .sort((a, b) => {
@@ -790,7 +790,7 @@ export default function ManageEpisodes() {
                         const isEliminated = contestant.isEliminated
                         const count = results.soggyBottoms[contestant.id] || 0
                         return (
-                          <div key={`soggy-${contestant.id}`} className={`flex items-center gap-2 p-2 border rounded-lg ${
+                          <div key={`soggy-${contestant.id}`} className={`flex items-center gap-2 p-2 border rounded-2xl ${
                             isEliminated ? 'opacity-60' : ''
                           }`}>
                             {contestant.imageUrl && (
@@ -800,22 +800,22 @@ export default function ManageEpisodes() {
                                 className="w-6 h-6 rounded-full object-cover"
                               />
                             )}
-                            <span className="text-sm font-medium text-black flex-1">
+                            <span className="text-sm font-medium text-ink flex-1">
                               {contestant.name}
                               {isEliminated && ' (Eliminated)'}
                             </span>
                             <button
                               onClick={() => !isEliminated && handleSoggyBottomChange(contestant.id, -1)}
                               disabled={isEliminated}
-                              className="bg-red-500 hover:bg-red-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white w-6 h-6 rounded-full text-sm"
+                              className="bg-rose-deep text-cream font-bold hover:bg-rose-dark disabled:opacity-40 disabled:cursor-not-allowed w-6 h-6 rounded-full text-sm"
                             >
                               -
                             </button>
-                            <span className="w-8 text-center text-sm font-medium text-black">{count}</span>
+                            <span className="w-8 text-center text-sm font-medium text-ink">{count}</span>
                             <button
                               onClick={() => !isEliminated && handleSoggyBottomChange(contestant.id, 1)}
                               disabled={isEliminated}
-                              className="bg-green-500 hover:bg-green-600 disabled:bg-gray-400 disabled:cursor-not-allowed text-white w-6 h-6 rounded-full text-sm"
+                              className="bg-ink text-cream font-bold hover:bg-[#3d342e] disabled:opacity-40 disabled:cursor-not-allowed w-6 h-6 rounded-full text-sm"
                             >
                               +
                             </button>
@@ -827,32 +827,32 @@ export default function ManageEpisodes() {
 
                   <button
                     onClick={saveResults}
-                    className="w-full bg-green-600 hover:bg-green-700 text-white px-6 py-3 rounded-lg transition-colors duration-200"
+                    className="w-full bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-3 rounded-full transition-colors duration-200"
                   >
                     Save All Results
                   </button>
                 </div>
               ) : showForm ? (
                 <div>
-                  <h2 className="text-xl font-semibold mb-4">
+                  <h2 className="font-display font-normal text-[28px] mb-4">
                     {editingEpisode ? 'Edit Episode' : 'Add New Episode'}
                   </h2>
                   <form onSubmit={handleSubmit} className="space-y-4">
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-ink-muted mb-1">
                         Episode Title
                       </label>
                       <input
                         type="text"
                         value={formData.title}
                         onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                        className="w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-ink-muted mb-1">
                         Episode Number
                       </label>
                       <input
@@ -860,20 +860,20 @@ export default function ManageEpisodes() {
                         min="1"
                         value={formData.episodeNumber}
                         onChange={(e) => setFormData({ ...formData, episodeNumber: parseInt(e.target.value) })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                        className="w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
                         required
                       />
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-1">
+                      <label className="block text-sm font-medium text-ink-muted mb-1">
                         Air Date
                       </label>
                       <input
                         type="datetime-local"
                         value={formData.airDate}
                         onChange={(e) => setFormData({ ...formData, airDate: e.target.value })}
-                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                        className="w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
                         required
                       />
                     </div>
@@ -884,9 +884,9 @@ export default function ManageEpisodes() {
                         id="isActive"
                         checked={formData.isActive}
                         onChange={(e) => setFormData({ ...formData, isActive: e.target.checked })}
-                        className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded"
+                        className="h-4 w-4 text-blue-deep focus:ring-rose border-input rounded"
                       />
-                      <label htmlFor="isActive" className="ml-2 block text-sm text-gray-700">
+                      <label htmlFor="isActive" className="ml-2 block text-sm text-ink-muted">
                         Active (users can make picks for this episode)
                       </label>
                     </div>
@@ -894,14 +894,14 @@ export default function ManageEpisodes() {
                     <div className="flex gap-2">
                       <button
                         type="submit"
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-2 rounded-full transition-colors duration-200"
                       >
                         {editingEpisode ? 'Update Episode' : 'Create Episode'}
                       </button>
                       <button
                         type="button"
                         onClick={cancelEdit}
-                        className="bg-gray-500 hover:bg-gray-600 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-oat text-ink font-bold hover:bg-line px-6 py-2 rounded-full transition-colors duration-200"
                       >
                         Cancel
                       </button>
@@ -909,7 +909,7 @@ export default function ManageEpisodes() {
                   </form>
                 </div>
               ) : (
-                <div className="text-center text-gray-500 py-8">
+                <div className="text-center text-ink-faint py-8">
                   <p>Select an episode to manage results, or add a new episode</p>
                 </div>
               )}

@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -143,10 +143,10 @@ export default function WhatsAppSharing() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
@@ -157,29 +157,23 @@ export default function WhatsAppSharing() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-card rounded-2xl p-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+              <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink mb-2">
                 📱 WhatsApp Sharing
               </h1>
-              <p className="text-gray-600">Generate and share picks with your WhatsApp group</p>
+              <p className="text-ink-muted">Generate and share picks with your WhatsApp group</p>
             </div>
             <div className="flex gap-4">
               <Link
                 href="/admin"
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
               >
                 Back to Admin
               </Link>
-              <button
-                onClick={() => signOut()}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-              >
-                Sign Out
-              </button>
             </div>
           </div>
 
@@ -187,7 +181,7 @@ export default function WhatsAppSharing() {
             {/* Season and Episode Selection */}
             <div className="space-y-6">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-muted mb-2">
                   Select Season
                 </label>
                 <select
@@ -199,7 +193,7 @@ export default function WhatsAppSharing() {
                       fetchEpisodes(season.id)
                     }
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full p-3 border border-input rounded-2xl focus:ring-2 focus:ring-rose focus:border-transparent"
                 >
                   <option value="">Select a season</option>
                   {seasons.map((season) => (
@@ -211,7 +205,7 @@ export default function WhatsAppSharing() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">
+                <label className="block text-sm font-medium text-ink-muted mb-2">
                   Select Episode
                 </label>
                 <select
@@ -220,7 +214,7 @@ export default function WhatsAppSharing() {
                     const episode = episodes.find(ep => ep.id === e.target.value)
                     setSelectedEpisode(episode || null)
                   }}
-                  className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-amber-500 focus:border-transparent"
+                  className="w-full p-3 border border-input rounded-2xl focus:ring-2 focus:ring-rose focus:border-transparent"
                   disabled={!selectedSeason}
                 >
                   <option value="">Select an episode</option>
@@ -232,9 +226,9 @@ export default function WhatsAppSharing() {
                 </select>
               </div>
 
-              <div className="bg-blue-50 p-4 rounded-lg">
-                <h3 className="font-semibold text-blue-800 mb-2">How it works:</h3>
-                <ol className="text-sm text-blue-700 space-y-1">
+              <div className="bg-oat p-4 rounded-2xl">
+                <h3 className="font-semibold text-ink mb-2">How it works:</h3>
+                <ol className="text-sm text-ink space-y-1">
                   <li>1. Select the season and episode</li>
                   <li>2. Click &ldquo;Generate WhatsApp Message&rdquo;</li>
                   <li>3. Copy the message or open WhatsApp</li>
@@ -245,7 +239,7 @@ export default function WhatsAppSharing() {
               <button
                 onClick={generateWhatsAppMessage}
                 disabled={!selectedEpisode || generating}
-                className="w-full bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-6 py-3 rounded-lg transition-colors duration-200 font-semibold"
+                className="w-full bg-ink text-cream font-bold hover:bg-[#3d342e] disabled:opacity-40 px-6 py-3 rounded-full transition-colors duration-200"
               >
                 {generating ? 'Generating...' : 'Generate WhatsApp Message'}
               </button>
@@ -255,10 +249,10 @@ export default function WhatsAppSharing() {
             <div>
               {showMessage && whatsappMessage && (
                 <div className="space-y-4">
-                  <div className="bg-green-50 p-4 rounded-lg">
-                    <h3 className="font-semibold text-green-800 mb-2">Generated Message:</h3>
-                    <div className="bg-white p-4 rounded border border-green-200">
-                      <pre className="whitespace-pre-wrap text-sm text-gray-800 font-mono">
+                  <div className="bg-oat p-4 rounded-2xl">
+                    <h3 className="font-semibold text-positive mb-2">Generated Message:</h3>
+                    <div className="bg-card p-4 rounded border border-line">
+                      <pre className="whitespace-pre-wrap text-sm text-ink font-mono">
                         {whatsappMessage}
                       </pre>
                     </div>
@@ -267,21 +261,21 @@ export default function WhatsAppSharing() {
                   <div className="flex gap-3">
                     <button
                       onClick={copyToClipboard}
-                      className="flex-1 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-semibold"
+                      className="flex-1 bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200"
                     >
                       📋 Copy to Clipboard
                     </button>
                     <button
                       onClick={openWhatsApp}
-                      className="flex-1 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 font-semibold"
+                      className="flex-1 bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200"
                     >
                       📱 Open WhatsApp
                     </button>
                   </div>
 
-                  <div className="bg-amber-50 p-4 rounded-lg">
-                    <h4 className="font-semibold text-amber-800 mb-2">Instructions:</h4>
-                    <p className="text-sm text-amber-700">
+                  <div className="bg-oat p-4 rounded-2xl">
+                    <h4 className="font-semibold text-ink mb-2">Instructions:</h4>
+                    <p className="text-sm text-ink">
                       After copying or opening WhatsApp, paste the message into your group chat. 
                       The message includes all players&rsquo; picks for the selected episode.
                     </p>
@@ -290,10 +284,10 @@ export default function WhatsAppSharing() {
               )}
 
               {!showMessage && (
-                <div className="bg-gray-50 p-8 rounded-lg text-center">
+                <div className="bg-oat p-8 rounded-2xl text-center">
                   <div className="text-4xl mb-4">📱</div>
-                  <h3 className="text-lg font-semibold text-gray-800 mb-2">Ready to Share</h3>
-                  <p className="text-gray-600">
+                  <h3 className="font-display font-normal text-2xl text-ink mb-2">Ready to Share</h3>
+                  <p className="text-ink-muted">
                     Select a season and episode, then generate a WhatsApp message to share with your group.
                   </p>
                 </div>

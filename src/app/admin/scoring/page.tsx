@@ -89,27 +89,27 @@ export default function ScoringPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
-        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      <div className="min-h-screen flex items-center justify-center bg-cream">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose"></div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-2xl p-6">
             <div className="flex flex-wrap gap-4 justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Scoring</h1>
-                <p className="text-gray-600 mt-2">
+                <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Scoring</h1>
+                <p className="text-ink-muted mt-2">
                   Scores are calculated live from picks and episode results — there is nothing to recalculate.
                 </p>
               </div>
               <button
                 onClick={() => router.push('/admin')}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
               >
                 Back to Admin
               </button>
@@ -121,7 +121,7 @@ export default function ScoringPage() {
                 setScores([])
                 setContestants([])
               }}
-              className="mt-4 w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="mt-4 w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
             >
               <option value="">Select a season...</option>
               {seasons.map(season => (
@@ -133,9 +133,9 @@ export default function ScoringPage() {
           </div>
 
           {contestants.length > 0 && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-800">Finalists</h2>
-              <p className="text-gray-600 text-sm mt-1 mb-4">
+            <div className="bg-card rounded-2xl p-6">
+              <h2 className="font-display font-normal text-[28px] text-ink">Finalists</h2>
+              <p className="text-ink-muted text-sm mt-1 mb-4">
                 Mark the bakers who reach the final. Each matching finalist pick scores immediately.
               </p>
               <div className="flex flex-wrap gap-2">
@@ -145,8 +145,8 @@ export default function ScoringPage() {
                     onClick={() => toggleFinalist(c)}
                     className={`px-4 py-2 rounded-full border text-sm font-medium transition-colors ${
                       c.isFinalist
-                        ? 'bg-amber-500 border-amber-500 text-white'
-                        : 'bg-white border-gray-300 text-gray-800 hover:border-amber-400'
+                        ? 'bg-ink text-cream font-bold border-rose'
+                        : 'bg-card border-input text-ink hover:border-rose'
                     }`}
                   >
                     {c.isFinalist ? '🏆 ' : ''}
@@ -158,15 +158,15 @@ export default function ScoringPage() {
           )}
 
           {selectedSeasonId && (
-            <div className="bg-white rounded-lg shadow p-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Standings</h2>
+            <div className="bg-card rounded-2xl p-6">
+              <h2 className="font-display font-normal text-[28px] text-ink mb-4">Standings</h2>
               {scores.length === 0 ? (
-                <p className="text-gray-600">No picks yet this season.</p>
+                <p className="text-ink-muted">No picks yet this season.</p>
               ) : (
                 <div className="overflow-x-auto">
                   <table className="min-w-full divide-y divide-gray-200 text-sm">
-                    <thead className="bg-gray-50">
-                      <tr className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <thead className="bg-oat">
+                      <tr className="text-left text-xs font-medium text-ink-faint uppercase tracking-wider">
                         <th className="px-4 py-3">Rank</th>
                         <th className="px-4 py-3">Player</th>
                         <th className="px-4 py-3">Total</th>
@@ -177,26 +177,26 @@ export default function ScoringPage() {
                         <th className="px-4 py-3">🤝 / 🥧 / 🔧</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-200 text-gray-900">
+                    <tbody className="divide-y divide-gray-200 text-ink">
                       {scores.map(score => (
-                        <tr key={score.userId} className={score.rank <= 3 ? 'bg-yellow-50' : ''}>
+                        <tr key={score.userId} className={score.rank <= 3 ? 'bg-oat' : ''}>
                           <td className="px-4 py-3 font-medium">{score.rank}</td>
                           <td className="px-4 py-3">
                             <div className="font-medium">{score.userName}</div>
-                            <div className="text-gray-500">{score.userEmail}</div>
+                            <div className="text-ink-faint">{score.userEmail}</div>
                           </td>
                           <td className="px-4 py-3 font-bold">{score.totalScore}</td>
                           <td className="px-4 py-3">{score.weeklyScore}</td>
                           <td className="px-4 py-3">{score.finalistScore}</td>
                           <td className="px-4 py-3">
-                            <span className="text-green-600">{score.correctStarBaker}</span>
+                            <span className="text-positive">{score.correctStarBaker}</span>
                             {' / '}
-                            <span className="text-red-600">{score.wrongStarBaker}</span>
+                            <span className="text-rose-deep">{score.wrongStarBaker}</span>
                           </td>
                           <td className="px-4 py-3">
-                            <span className="text-green-600">{score.correctElimination}</span>
+                            <span className="text-positive">{score.correctElimination}</span>
                             {' / '}
-                            <span className="text-red-600">{score.wrongElimination}</span>
+                            <span className="text-rose-deep">{score.wrongElimination}</span>
                           </td>
                           <td className="px-4 py-3">
                             {score.handshakes} / {score.soggyBottoms} / {score.technicalChallengeWins}

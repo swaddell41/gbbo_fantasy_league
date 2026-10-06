@@ -270,32 +270,32 @@ export default function ManageResults() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
+    <div className="min-h-screen bg-cream py-8">
       <div className="max-w-6xl mx-auto px-4">
         <div className="mb-8">
-          <Link href="/admin" className="text-blue-600 hover:text-blue-800 mb-4 inline-block">
+          <Link href="/admin" className="text-rose-deep hover:text-rose-dark mb-4 inline-block">
             ← Back to Admin Dashboard
           </Link>
-          <h1 className="text-3xl font-bold text-black">Manage Episode Results</h1>
-          <p className="text-black mt-2">Mark Star Baker, Elimination, and all bonus points for each episode</p>
+          <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Manage Episode Results</h1>
+          <p className="text-ink mt-2">Mark Star Baker, Elimination, and all bonus points for each episode</p>
         </div>
 
         {/* Season Selection */}
-        <div className="bg-white rounded-lg shadow p-6 mb-6">
-          <h2 className="text-xl font-semibold text-black mb-4">Select Season</h2>
+        <div className="bg-card rounded-2xl p-6 mb-6">
+          <h2 className="font-display font-normal text-[28px] text-ink mb-4">Select Season</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
             {seasons.map((season) => (
               <button
                 key={season.id}
                 onClick={() => setSelectedSeason(season)}
-                className={`p-4 rounded-lg border-2 transition-colors ${
+                className={`p-4 rounded-2xl border-2 transition-colors ${
                   selectedSeason?.id === season.id
-                    ? 'border-blue-500 bg-blue-50'
-                    : 'border-gray-200 hover:border-gray-300'
+                    ? 'border-rose bg-oat'
+                    : 'border-input hover:border-input'
                 }`}
               >
-                <h3 className="font-semibold text-black">{season.name}</h3>
-                <p className="text-sm text-black">Year: {season.year}</p>
+                <h3 className="font-semibold text-ink">{season.name}</h3>
+                <p className="text-sm text-ink">Year: {season.year}</p>
               </button>
             ))}
           </div>
@@ -304,22 +304,22 @@ export default function ManageResults() {
         {selectedSeason && (
           <>
             {/* Episode Selection */}
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-xl font-semibold text-black mb-4">Select Episode</h2>
+            <div className="bg-card rounded-2xl p-6 mb-6">
+              <h2 className="font-display font-normal text-[28px] text-ink mb-4">Select Episode</h2>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                 {episodes.map((episode) => (
                   <button
                     key={episode.id}
                     onClick={() => setSelectedEpisode(episode)}
-                    className={`p-4 rounded-lg border-2 transition-colors text-left ${
+                    className={`p-4 rounded-2xl border-2 transition-colors text-left ${
                       selectedEpisode?.id === episode.id
-                        ? 'border-green-500 bg-green-50'
-                        : 'border-gray-200 hover:border-gray-300'
+                        ? 'border-rose bg-oat'
+                        : 'border-input hover:border-input'
                     }`}
                   >
-                    <h3 className="font-semibold text-black">Episode {episode.episodeNumber}</h3>
-                    <p className="text-sm text-black">{episode.title}</p>
-                    <p className="text-xs text-black mt-1">
+                    <h3 className="font-semibold text-ink">Episode {episode.episodeNumber}</h3>
+                    <p className="text-sm text-ink">{episode.title}</p>
+                    <p className="text-xs text-ink mt-1">
                       {episode.isCompleted ? '✅ Completed' : '⏳ Pending'}
                     </p>
                   </button>
@@ -328,8 +328,8 @@ export default function ManageResults() {
             </div>
 
             {selectedEpisode && (
-              <div className="bg-white rounded-lg shadow p-6">
-                <h2 className="text-xl font-semibold text-black mb-6">
+              <div className="bg-card rounded-2xl p-6">
+                <h2 className="font-display font-normal text-[28px] text-ink mb-6">
                   Results for Episode {selectedEpisode.episodeNumber}: {selectedEpisode.title}
                 </h2>
 
@@ -338,16 +338,16 @@ export default function ManageResults() {
                   <div className="grid md:grid-cols-2 gap-8">
                     {/* Star Baker Selection */}
                     <div>
-                      <h3 className="text-lg font-semibold text-green-800 mb-4">Star Baker</h3>
+                      <h3 className="font-display font-normal text-2xl text-rose-deep mb-4">Star Baker</h3>
                       <div className="space-y-2">
                         {contestants.filter(c => !c.isEliminated).map((contestant) => (
                           <button
                             key={`star-${contestant.id}`}
                             onClick={() => handleResultChange('starBakerId', contestant.id)}
-                            className={`w-full p-3 rounded-lg border-2 transition-colors text-left ${
+                            className={`w-full p-3 rounded-2xl border-2 transition-colors text-left ${
                               results.starBakerId === contestant.id
-                                ? 'border-green-500 bg-green-100'
-                                : 'border-gray-200 hover:border-green-300'
+                                ? 'border-rose bg-oat'
+                                : 'border-input hover:border-line'
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -358,7 +358,7 @@ export default function ManageResults() {
                                   className="w-8 h-8 rounded-full object-cover"
                                 />
                               )}
-                              <span className="font-medium text-black">{contestant.name}</span>
+                              <span className="font-medium text-ink">{contestant.name}</span>
                             </div>
                           </button>
                         ))}
@@ -367,16 +367,16 @@ export default function ManageResults() {
 
                     {/* Elimination Selection */}
                     <div>
-                      <h3 className="text-lg font-semibold text-red-800 mb-4">Eliminated</h3>
+                      <h3 className="font-display font-normal text-2xl text-blue-deep mb-4">Eliminated</h3>
                       <div className="space-y-2">
                         {contestants.filter(c => !c.isEliminated).map((contestant) => (
                           <button
                             key={`elim-${contestant.id}`}
                             onClick={() => handleResultChange('eliminatedId', contestant.id)}
-                            className={`w-full p-3 rounded-lg border-2 transition-colors text-left ${
+                            className={`w-full p-3 rounded-2xl border-2 transition-colors text-left ${
                               results.eliminatedId === contestant.id
-                                ? 'border-red-500 bg-red-100'
-                                : 'border-gray-200 hover:border-red-300'
+                                ? 'border-blue bg-oat'
+                                : 'border-input hover:border-line'
                             }`}
                           >
                             <div className="flex items-center gap-3">
@@ -387,7 +387,7 @@ export default function ManageResults() {
                                   className="w-8 h-8 rounded-full object-cover"
                                 />
                               )}
-                              <span className="font-medium text-black">{contestant.name}</span>
+                              <span className="font-medium text-ink">{contestant.name}</span>
                             </div>
                           </button>
                         ))}
@@ -397,22 +397,22 @@ export default function ManageResults() {
 
                   {/* Bonus Points Section */}
                   <div className="border-t pt-8">
-                    <h3 className="text-lg font-semibold text-black mb-6">Bonus Points</h3>
+                    <h3 className="font-display font-normal text-2xl text-ink mb-6">Bonus Points</h3>
                     
                     <div className="grid md:grid-cols-3 gap-6">
                       {/* Technical Challenge Winner */}
                       <div>
-                        <h4 className="text-md font-semibold text-blue-800 mb-3">Technical Challenge Winner</h4>
-                        <p className="text-sm text-black mb-3">+1 point for Star Baker picks</p>
+                        <h4 className="text-md font-semibold text-ink mb-3">Technical Challenge Winner</h4>
+                        <p className="text-sm text-ink mb-3">+1 point for Star Baker picks</p>
                         <div className="space-y-2">
                           {contestants.filter(c => !c.isEliminated).map((contestant) => (
                             <button
                               key={`tech-${contestant.id}`}
                               onClick={() => handleResultChange('technicalChallengeWinnerId', contestant.id)}
-                              className={`w-full p-2 rounded-lg border-2 transition-colors text-left ${
+                              className={`w-full p-2 rounded-2xl border-2 transition-colors text-left ${
                                 results.technicalChallengeWinnerId === contestant.id
-                                  ? 'border-blue-500 bg-blue-100'
-                                  : 'border-gray-200 hover:border-blue-300'
+                                  ? 'border-rose bg-oat'
+                                  : 'border-input hover:border-line'
                               }`}
                             >
                               <div className="flex items-center gap-2">
@@ -423,7 +423,7 @@ export default function ManageResults() {
                                     className="w-6 h-6 rounded-full object-cover"
                                   />
                                 )}
-                                <span className="text-sm font-medium text-black">{contestant.name}</span>
+                                <span className="text-sm font-medium text-ink">{contestant.name}</span>
                                 {results.technicalChallengeWinnerId === contestant.id && ' ✓'}
                               </div>
                             </button>
@@ -433,13 +433,13 @@ export default function ManageResults() {
 
                       {/* Handshakes */}
                       <div>
-                        <h4 className="text-md font-semibold text-yellow-800 mb-3">Paul Hollywood Handshakes</h4>
-                        <p className="text-sm text-black mb-3">+1 point each for Star Baker picks</p>
+                        <h4 className="text-md font-semibold text-ink mb-3">Paul Hollywood Handshakes</h4>
+                        <p className="text-sm text-ink mb-3">+1 point each for Star Baker picks</p>
                         <div className="space-y-2">
                           {contestants.filter(c => !c.isEliminated).map((contestant) => {
                             const count = results.handshakes[contestant.id] || 0
                             return (
-                              <div key={`handshake-${contestant.id}`} className="flex items-center gap-2 p-2 rounded-lg border-2 border-gray-200">
+                              <div key={`handshake-${contestant.id}`} className="flex items-center gap-2 p-2 rounded-2xl border-2 border-input">
                                 <div className="flex items-center gap-2 flex-1">
                                   {contestant.imageUrl && (
                                     <img
@@ -448,20 +448,20 @@ export default function ManageResults() {
                                       className="w-6 h-6 rounded-full object-cover"
                                     />
                                   )}
-                                  <span className="text-sm font-medium text-black flex-1">{contestant.name}</span>
+                                  <span className="text-sm font-medium text-ink flex-1">{contestant.name}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleHandshakeChange(contestant.id, -1)}
                                     disabled={count <= 0}
-                                    className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm font-bold"
+                                    className="w-6 h-6 rounded-full bg-line hover:bg-input disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm font-bold"
                                   >
                                     -
                                   </button>
-                                  <span className="w-8 text-center text-sm font-medium text-black">{count}</span>
+                                  <span className="w-8 text-center text-sm font-medium text-ink">{count}</span>
                                   <button
                                     onClick={() => handleHandshakeChange(contestant.id, 1)}
-                                    className="w-6 h-6 rounded-full bg-yellow-200 hover:bg-yellow-300 flex items-center justify-center text-sm font-bold"
+                                    className="w-6 h-6 rounded-full bg-rose-tint hover:bg-rose/30 flex items-center justify-center text-sm font-bold"
                                   >
                                     +
                                   </button>
@@ -474,13 +474,13 @@ export default function ManageResults() {
 
                       {/* Soggy Bottoms */}
                       <div>
-                        <h4 className="text-md font-semibold text-red-800 mb-3">Soggy Bottoms</h4>
-                        <p className="text-sm text-black mb-3">-1 point each for Star Baker picks</p>
+                        <h4 className="text-md font-semibold text-rose-deep mb-3">Soggy Bottoms</h4>
+                        <p className="text-sm text-ink mb-3">-1 point each for Star Baker picks</p>
                         <div className="space-y-2">
                           {contestants.filter(c => !c.isEliminated).map((contestant) => {
                             const count = results.soggyBottoms[contestant.id] || 0
                             return (
-                              <div key={`soggy-${contestant.id}`} className="flex items-center gap-2 p-2 rounded-lg border-2 border-gray-200">
+                              <div key={`soggy-${contestant.id}`} className="flex items-center gap-2 p-2 rounded-2xl border-2 border-input">
                                 <div className="flex items-center gap-2 flex-1">
                                   {contestant.imageUrl && (
                                     <img
@@ -489,20 +489,20 @@ export default function ManageResults() {
                                       className="w-6 h-6 rounded-full object-cover"
                                     />
                                   )}
-                                  <span className="text-sm font-medium text-black flex-1">{contestant.name}</span>
+                                  <span className="text-sm font-medium text-ink flex-1">{contestant.name}</span>
                                 </div>
                                 <div className="flex items-center gap-1">
                                   <button
                                     onClick={() => handleSoggyBottomChange(contestant.id, -1)}
                                     disabled={count <= 0}
-                                    className="w-6 h-6 rounded-full bg-gray-200 hover:bg-gray-300 disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm font-bold"
+                                    className="w-6 h-6 rounded-full bg-line hover:bg-input disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center text-sm font-bold"
                                   >
                                     -
                                   </button>
-                                  <span className="w-8 text-center text-sm font-medium text-black">{count}</span>
+                                  <span className="w-8 text-center text-sm font-medium text-ink">{count}</span>
                                   <button
                                     onClick={() => handleSoggyBottomChange(contestant.id, 1)}
-                                    className="w-6 h-6 rounded-full bg-red-200 hover:bg-red-300 flex items-center justify-center text-sm font-bold"
+                                    className="w-6 h-6 rounded-full bg-rose-tint hover:bg-rose/30 flex items-center justify-center text-sm font-bold"
                                   >
                                     +
                                   </button>
@@ -520,7 +520,7 @@ export default function ManageResults() {
                   <button
                     onClick={saveResults}
                     disabled={!results.starBakerId || !results.eliminatedId}
-                    className="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-8 py-3 rounded-lg transition-colors duration-200"
+                    className="bg-ink text-cream font-bold hover:bg-[#3d342e] disabled:opacity-50 disabled:cursor-not-allowed px-8 py-3 rounded-full transition-colors duration-200"
                   >
                     Save All Results
                   </button>

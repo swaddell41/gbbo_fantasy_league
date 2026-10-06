@@ -95,34 +95,34 @@ export default function ManageSeasons() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-card rounded-2xl p-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Manage Seasons</h1>
-              <p className="text-gray-600 mt-2">Create and manage GBBO seasons</p>
+              <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Manage Seasons</h1>
+              <p className="text-ink-muted mt-2">Create and manage GBBO seasons</p>
             </div>
             <div className="space-x-4">
               <Link
                 href="/admin"
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
               >
                 Back to Admin
               </Link>
               <button
                 onClick={() => setShowForm(!showForm)}
-                className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200"
               >
                 {showForm ? 'Cancel' : 'Add Season'}
               </button>
@@ -130,11 +130,11 @@ export default function ManageSeasons() {
           </div>
 
           {showForm && (
-            <div className="bg-gray-50 p-6 rounded-lg mb-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Create New Season</h3>
+            <div className="bg-oat p-6 rounded-2xl mb-8">
+              <h3 className="font-display font-normal text-2xl text-ink mb-4">Create New Season</h3>
               <form onSubmit={handleSubmit} className="space-y-4">
                 <div>
-                  <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="name" className="block text-sm font-medium text-ink-muted">
                     Season Name
                   </label>
                   <input
@@ -142,13 +142,13 @@ export default function ManageSeasons() {
                     id="name"
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-gray-900"
+                    className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose text-ink"
                     placeholder="e.g., Season 14"
                     required
                   />
                 </div>
                 <div>
-                  <label htmlFor="year" className="block text-sm font-medium text-gray-700">
+                  <label htmlFor="year" className="block text-sm font-medium text-ink-muted">
                     Year
                   </label>
                   <input
@@ -156,13 +156,13 @@ export default function ManageSeasons() {
                     id="year"
                     value={formData.year}
                     onChange={(e) => setFormData({ ...formData, year: parseInt(e.target.value) })}
-                    className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-gray-900"
+                    className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose text-ink"
                     required
                   />
                 </div>
                 <button
                   type="submit"
-                  className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                  className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-2 rounded-full transition-colors duration-200"
                 >
                   Create Season
                 </button>
@@ -172,20 +172,20 @@ export default function ManageSeasons() {
 
           <div className="space-y-4">
             {seasons.length === 0 ? (
-              <div className="text-center py-8 text-gray-500">
+              <div className="text-center py-8 text-ink-faint">
                 No seasons created yet. Add your first season above!
               </div>
             ) : (
               seasons.map((season) => (
                 <div
                   key={season.id}
-                  className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200"
+                  className="bg-card border border-input rounded-2xl p-6 hover: transition- duration-200"
                 >
                   <div className="flex justify-between items-center">
                     <div>
-                      <h3 className="text-lg font-semibold text-gray-900">{season.name}</h3>
-                      <p className="text-gray-600">Year: {season.year}</p>
-                      <p className="text-sm text-gray-500">
+                      <h3 className="font-display font-normal text-2xl text-ink">{season.name}</h3>
+                      <p className="text-ink-muted">Year: {season.year}</p>
+                      <p className="text-sm text-ink-faint">
                         Created: {new Date(season.createdAt).toLocaleDateString()}
                       </p>
                     </div>
@@ -193,21 +193,21 @@ export default function ManageSeasons() {
                       <span
                         className={`px-3 py-1 rounded-full text-sm font-medium ${
                           season.isActive
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-gray-100 text-gray-800'
+                            ? 'bg-oat text-positive'
+                            : 'bg-oat text-ink'
                         }`}
                       >
                         {season.isActive ? 'Active' : 'Inactive'}
                       </span>
                       <Link
                         href={`/admin/contestants?seasonId=${season.id}`}
-                        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                        className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full text-sm transition-colors duration-200"
                       >
                         Manage Contestants
                       </Link>
                       <button
                         onClick={() => deleteSeason(season.id, season.name)}
-                        className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg text-sm transition-colors duration-200"
+                        className="bg-rose-deep text-cream font-bold hover:bg-rose-dark px-4 py-2 rounded-full text-sm transition-colors duration-200"
                       >
                         Delete
                       </button>

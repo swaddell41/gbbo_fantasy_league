@@ -4,6 +4,8 @@ import { useState, useEffect } from 'react'
 import { useSession, signOut } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
+import Bunting from '@/components/tent/Bunting'
+import Wordmark from '@/components/tent/Wordmark'
 
 export default function ChangePassword() {
   const { data: session, status } = useSession()
@@ -83,10 +85,10 @@ export default function ChangePassword() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
@@ -97,25 +99,29 @@ export default function ChangePassword() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream text-ink">
+      <header className="px-[22px] pb-3 pt-5 md:px-12 md:py-5">
+        <Wordmark />
+      </header>
+      <Bunting />
       <div className="container mx-auto px-4 py-8">
-        <div className="max-w-md mx-auto bg-white rounded-xl shadow-lg p-8">
+        <div className="max-w-md mx-auto bg-card rounded-2xl p-8">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">Change Password</h1>
+            <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Change Password</h1>
             {session.user.mustChangePassword ? (
-              <div className="mt-4 p-4 bg-amber-50 border border-amber-200 rounded-md">
-                <p className="text-sm text-amber-800 font-medium">
+              <div className="mt-4 p-4 bg-oat border border-line rounded-md">
+                <p className="text-sm text-ink font-medium">
                   🔒 Your password has been reset by an administrator. Please choose a new password to continue.
                 </p>
               </div>
             ) : (
-              <p className="text-gray-600 mt-2">Update your account password</p>
+              <p className="text-ink-muted mt-2">Update your account password</p>
             )}
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div>
-              <label htmlFor="currentPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="currentPassword" className="block text-sm font-medium text-ink-muted">
                 Current Password
               </label>
               <input
@@ -124,12 +130,12 @@ export default function ChangePassword() {
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
                 required
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose sm:text-sm text-ink"
               />
             </div>
 
             <div>
-              <label htmlFor="newPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="newPassword" className="block text-sm font-medium text-ink-muted">
                 New Password
               </label>
               <input
@@ -139,12 +145,12 @@ export default function ChangePassword() {
                 onChange={(e) => setNewPassword(e.target.value)}
                 required
                 minLength={6}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose sm:text-sm text-ink"
               />
             </div>
 
             <div>
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-medium text-ink-muted">
                 Confirm New Password
               </label>
               <input
@@ -154,15 +160,15 @@ export default function ChangePassword() {
                 onChange={(e) => setConfirmPassword(e.target.value)}
                 required
                 minLength={6}
-                className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 sm:text-sm text-gray-900"
+                className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose sm:text-sm text-ink"
               />
             </div>
 
             {message && (
               <div className={`p-3 rounded-md ${
                 message.includes('successfully') 
-                  ? 'bg-green-100 text-green-700' 
-                  : 'bg-red-100 text-red-700'
+                  ? 'bg-oat text-positive' 
+                  : 'bg-oat text-rose-deep'
               }`}>
                 {message}
               </div>
@@ -172,13 +178,13 @@ export default function ChangePassword() {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Changing...' : 'Change Password'}
               </button>
               <Link
                 href="/dashboard"
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 px-4 py-2 rounded-lg transition-colors duration-200 text-center"
+                className="flex-1 bg-oat hover:bg-line text-ink font-bold px-4 py-2 rounded-full transition-colors duration-200 text-center"
               >
                 Cancel
               </Link>
@@ -188,7 +194,7 @@ export default function ChangePassword() {
           <div className="mt-6 text-center">
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
-              className="text-red-600 hover:text-red-700 text-sm"
+              className="text-rose-deep hover:text-rose-deep text-sm"
             >
               Sign Out
             </button>

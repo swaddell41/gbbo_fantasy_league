@@ -1,6 +1,6 @@
 'use client'
 
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -72,10 +72,10 @@ export default function AdminDashboard() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
@@ -86,144 +86,130 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
-      <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
-          <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-gray-900">
-              Admin Dashboard 🛠️
-            </h1>
-            <div className="flex items-center gap-3">
-            {!session.user.isAdmin && (
-              <Link href="/dashboard" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
-                Back to The Tent
-              </Link>
-            )}
-            <button
-              onClick={() => signOut({ callbackUrl: '/' })}
-              className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
-            >
-              Sign Out
-            </button>
-            </div>
+    <div>
+      <div className="mx-auto max-w-6xl px-[22px] py-8 md:px-12">
+        <div>
+          <div className="mb-8">
+            <p className="text-[13px] font-bold uppercase tracking-[.1em] text-rose-deep">Behind the scenes</p>
+            <h1 className="mt-1 font-display text-[40px] leading-none md:text-[56px]">Admin</h1>
           </div>
-          
+
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
             <Link
               href="/admin/seasons"
-              className="bg-amber-50 hover:bg-amber-100 p-6 rounded-lg border border-amber-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">📅</div>
-              <h3 className="text-lg font-semibold text-amber-800 mb-2">Manage Seasons</h3>
-              <p className="text-amber-700">Create and manage GBBO seasons</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">Manage Seasons</h3>
+              <p className="text-ink-muted">Create and manage GBBO seasons</p>
             </Link>
             
             <Link
               href="/admin/import"
-              className="bg-blue-50 hover:bg-blue-100 p-6 rounded-lg border border-blue-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">👨‍🍳</div>
-              <h3 className="text-lg font-semibold text-blue-800 mb-2">Contestant Management</h3>
-              <p className="text-blue-700">Import and manage contestant information</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">Contestant Management</h3>
+              <p className="text-ink-muted">Import and manage contestant information</p>
             </Link>
             
             <Link
               href="/admin/episodes"
-              className="bg-green-50 hover:bg-green-100 p-6 rounded-lg border border-green-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">📺</div>
-              <h3 className="text-lg font-semibold text-green-800 mb-2">Episode Management</h3>
-              <p className="text-green-700">Create episodes and manage results</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">Episode Management</h3>
+              <p className="text-ink-muted">Create episodes and manage results</p>
             </Link>
             
 
             <Link
               href="/admin/scoring"
-              className="bg-purple-50 hover:bg-purple-100 p-6 rounded-lg border border-purple-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">📊</div>
-              <h3 className="text-lg font-semibold text-purple-800 mb-2">Scoring System</h3>
-              <p className="text-purple-700">Calculate scores and view leaderboards</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">Scoring System</h3>
+              <p className="text-ink-muted">Calculate scores and view leaderboards</p>
             </Link>
 
             <Link
               href="/admin/picks"
-              className="bg-amber-50 hover:bg-amber-100 p-6 rounded-lg border border-amber-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">🔒</div>
-              <h3 className="text-lg font-semibold text-amber-800 mb-2">Picks</h3>
-              <p className="text-amber-700">See everyone’s picks and reset locked ones</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">Picks</h3>
+              <p className="text-ink-muted">See everyone’s picks and reset locked ones</p>
             </Link>
 
             <Link
               href="/admin/users"
-              className="bg-red-50 hover:bg-red-100 p-6 rounded-lg border border-red-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">👥</div>
-              <h3 className="text-lg font-semibold text-red-800 mb-2">User Management</h3>
-              <p className="text-red-700">Manage user accounts and reset passwords</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">User Management</h3>
+              <p className="text-ink-muted">Manage user accounts and reset passwords</p>
             </Link>
 
             <Link
               href="/admin/whatsapp"
-              className="bg-green-50 hover:bg-green-100 p-6 rounded-lg border border-green-200 transition-colors duration-200"
+              className="bg-oat hover:bg-line p-6 rounded-2xl transition-colors duration-200"
             >
               <div className="text-4xl mb-4">📱</div>
-              <h3 className="text-lg font-semibold text-green-800 mb-2">WhatsApp Sharing</h3>
-              <p className="text-green-700">Share picks and results to WhatsApp group</p>
+              <h3 className="font-display font-normal text-2xl text-ink mb-2">WhatsApp Sharing</h3>
+              <p className="text-ink-muted">Share picks and results to WhatsApp group</p>
             </Link>
 
           </div>
 
-          <div className="bg-gray-50 p-6 rounded-lg">
-            <h3 className="text-lg font-semibold text-gray-800 mb-4">Fantasy League Overview</h3>
+          <div className="bg-oat p-6 rounded-2xl">
+            <h3 className="font-display font-normal text-2xl text-ink mb-4">Fantasy League Overview</h3>
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-amber-600">{stats.totalSeasons}</div>
-                <div className="text-sm text-gray-600">Total Seasons</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.totalSeasons}</div>
+                <div className="text-sm text-ink-muted">Total Seasons</div>
               </div>
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-blue-600">{stats.totalContestants}</div>
-                <div className="text-sm text-gray-600">Contestants</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.totalContestants}</div>
+                <div className="text-sm text-ink-muted">Contestants</div>
               </div>
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-green-600">{stats.totalEpisodes}</div>
-                <div className="text-sm text-gray-600">Episodes</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.totalEpisodes}</div>
+                <div className="text-sm text-ink-muted">Episodes</div>
               </div>
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-purple-600">{stats.totalUsers}</div>
-                <div className="text-sm text-gray-600">Players</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.totalUsers}</div>
+                <div className="text-sm text-ink-muted">Players</div>
               </div>
             </div>
             
             {stats.activeSeason && (
-              <div className="mt-6 p-4 bg-amber-100 rounded-lg border border-amber-200">
-                <h4 className="font-semibold text-amber-800 mb-2">Current Season</h4>
+              <div className="mt-6 p-4 bg-oat rounded-2xl border border-line">
+                <h4 className="font-semibold text-ink mb-2">Current Season</h4>
                 <div className="grid md:grid-cols-3 gap-4">
                   <div>
-                    <div className="text-lg font-bold text-amber-700">{stats.activeSeason.name}</div>
-                    <div className="text-sm text-amber-600">Active Season</div>
+                    <div className="text-lg font-bold text-ink">{stats.activeSeason.name}</div>
+                    <div className="text-sm text-rose-deep">Active Season</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-700">{stats.activeSeason.contestantCount}</div>
-                    <div className="text-sm text-amber-600">Contestants</div>
+                    <div className="text-lg font-bold text-ink">{stats.activeSeason.contestantCount}</div>
+                    <div className="text-sm text-rose-deep">Contestants</div>
                   </div>
                   <div>
-                    <div className="text-lg font-bold text-amber-700">{stats.activeSeason.episodeCount}</div>
-                    <div className="text-sm text-amber-600">Episodes</div>
+                    <div className="text-lg font-bold text-ink">{stats.activeSeason.episodeCount}</div>
+                    <div className="text-sm text-rose-deep">Episodes</div>
                   </div>
                 </div>
               </div>
             )}
             
             <div className="mt-4 grid md:grid-cols-2 gap-4">
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-indigo-600">{stats.totalPicks}</div>
-                <div className="text-sm text-gray-600">Total Picks Made</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.totalPicks}</div>
+                <div className="text-sm text-ink-muted">Total Picks Made</div>
               </div>
-              <div className="text-center bg-white p-4 rounded-lg border">
-                <div className="text-2xl font-bold text-red-600">{stats.completedEpisodes || 0}</div>
-                <div className="text-sm text-gray-600">Completed Episodes</div>
+              <div className="text-center bg-card p-4 rounded-2xl border">
+                <div className="font-display text-[34px] leading-tight text-ink">{stats.completedEpisodes || 0}</div>
+                <div className="text-sm text-ink-muted">Completed Episodes</div>
               </div>
             </div>
           </div>

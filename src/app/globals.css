@@ -25,6 +25,14 @@
   --font-sans: var(--font-karla), system-ui, sans-serif;
 }
 
+/* Tailwind 4 draws a bare `border` in currentColor; keep borders soft by
+   default. In the base layer so border-* utilities still win. */
+@layer base {
+  *, ::before, ::after {
+    border-color: var(--color-line);
+  }
+}
+
 body {
   font-family: var(--font-sans);
 }
