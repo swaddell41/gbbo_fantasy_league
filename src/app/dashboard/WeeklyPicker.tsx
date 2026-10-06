@@ -61,6 +61,7 @@ export default function WeeklyPicker({
   const save = async () => {
     if (!sb) return setTab('sb')
     if (!el) return setTab('el')
+    if (!confirm(`Lock in ${name(sb)} for Star Baker and ${name(el)} going home? You can’t change picks once they’re saved.`)) return
     setSaving(true)
     try {
       await onSave(sb, el)

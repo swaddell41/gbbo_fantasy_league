@@ -3,6 +3,13 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import bcrypt from 'bcryptjs'
 import { prisma } from './prisma'
 
+// Player accounts that can also use the admin tools, e.g. "a@x.com,b@y.com".
+// Unlike isAdmin (an admin-only account), these stay in the league as players.
+function isListedAdmin(email: string) {
+  const list = (process.env.ADMIN_EMAILS ?? '').split(',').map(e => e.trim().toLowerCase()).filter(Boolean)
+  return list.includes(email.toLowerCase())
+}
+
 export const authOptions: NextAuthOptions = {
   secret: process.env.NEXTAUTH_SECRET || process.env.SECRET,
   providers: [
@@ -67,6 +74,7 @@ export const authOptions: NextAuthOptions = {
         if (dbUser) {
           session.user.id = dbUser.id
           session.user.isAdmin = dbUser.isAdmin
+          session.user.canAdmin = dbUser.isAdmin || isListedAdmin(dbUser.email)
           session.user.mustChangePassword = dbUser.mustChangePassword
         }
       }

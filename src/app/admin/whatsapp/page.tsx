@@ -46,7 +46,7 @@ export default function WhatsAppSharing() {
       return
     }
 
-    if (!session.user.isAdmin) {
+    if (!session.user.canAdmin) {
       router.push('/dashboard')
       return
     }

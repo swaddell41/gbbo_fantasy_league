@@ -27,7 +27,7 @@ export default function ManageSeasons() {
   useEffect(() => {
     if (status === 'loading') return
 
-    if (!session || !session.user || !session.user.isAdmin) {
+    if (!session || !session.user || !session.user.canAdmin) {
       router.push('/auth/signin')
       return
     }

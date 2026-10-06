@@ -66,7 +66,7 @@ export default function ManageEpisodes() {
 
   useEffect(() => {
     if (status === 'loading') return
-    if (!session || !session.user?.isAdmin) {
+    if (!session || !session.user?.canAdmin) {
       router.push('/auth/signin')
       return
     }
@@ -437,7 +437,7 @@ export default function ManageEpisodes() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
-  if (!session || !session.user?.isAdmin) {
+  if (!session || !session.user?.canAdmin) {
     return <div className="min-h-screen flex items-center justify-center">Unauthorized</div>
   }
 

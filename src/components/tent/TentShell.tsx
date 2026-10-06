@@ -21,6 +21,11 @@ function AccountMenu({ color }: { color: string }) {
       </button>
       {open && (
         <div className="absolute right-0 top-full z-20 mt-2 w-44 rounded-2xl bg-card p-2 text-[15px] shadow-[0_8px_30px_rgb(43_36_32/.15)]">
+          {session?.user?.canAdmin && (
+            <Link href="/admin" className="block rounded-xl px-3 py-2 text-ink hover:bg-oat">
+              Admin tools
+            </Link>
+          )}
           <Link href="/change-password" className="block rounded-xl px-3 py-2 text-ink hover:bg-oat">
             Change password
           </Link>

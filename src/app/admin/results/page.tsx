@@ -57,7 +57,7 @@ export default function ManageResults() {
 
   useEffect(() => {
     if (status === 'loading') return
-    if (!session || !session.user?.isAdmin) {
+    if (!session || !session.user?.canAdmin) {
       router.push('/auth/signin')
       return
     }
@@ -265,7 +265,7 @@ export default function ManageResults() {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
 
-  if (!session || !session.user?.isAdmin) {
+  if (!session || !session.user?.canAdmin) {
     return <div className="min-h-screen flex items-center justify-center">Unauthorized</div>
   }
 

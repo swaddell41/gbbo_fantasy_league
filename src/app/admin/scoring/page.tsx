@@ -47,7 +47,7 @@ export default function ScoringPage() {
 
   useEffect(() => {
     if (status === 'loading') return
-    if (!session?.user?.isAdmin) {
+    if (!session?.user?.canAdmin) {
       router.push('/admin')
       return
     }

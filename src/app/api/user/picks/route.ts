@@ -70,20 +70,23 @@ export async function POST(request: NextRequest) {
 
     const userId = session.user.id
 
-    // Replace the existing picks of the same kind in one transaction
+    // Picks lock once submitted: finalists once all three are in, weekly picks
+    // once both Star Baker and going-home are in. Only an admin can reset them.
+    const isFinalists = picks[0]?.pickType === 'FINALIST'
+    const episodeId = isFinalists ? null : picks[0]?.episodeId
+    if (!isFinalists && !episodeId) {
+      return NextResponse.json({ error: 'Episode ID is required for weekly picks' }, { status: 400 })
+    }
+    const scope = isFinalists
+      ? { userId, seasonId, pickType: 'FINALIST' as const }
+      : { userId, seasonId, episodeId, pickType: { in: ['STAR_BAKER' as const, 'ELIMINATION' as const] } }
+
     const createdPicks = await prisma.$transaction(async tx => {
-      if (picks[0]?.pickType === 'FINALIST') {
-        await tx.pick.deleteMany({ where: { userId, seasonId, pickType: 'FINALIST' } })
-      } else if (picks[0]?.episodeId) {
-        await tx.pick.deleteMany({
-          where: {
-            userId,
-            seasonId,
-            episodeId: picks[0].episodeId,
-            pickType: { in: ['STAR_BAKER', 'ELIMINATION'] }
-          }
-        })
-      }
+      const existing = await tx.pick.count({ where: scope })
+      if (existing >= (isFinalists ? 3 : 2)) return null
+
+      // Clear any incomplete set before saving the full one
+      await tx.pick.deleteMany({ where: scope })
 
       return Promise.all(
         picks.map(pick =>
@@ -101,6 +104,12 @@ export async function POST(request: NextRequest) {
       )
     })
 
+    if (!createdPicks) {
+      return NextResponse.json(
+        { error: 'These picks are locked in. Ask the admin if something needs fixing.' },
+        { status: 409 }
+      )
+    }
     return NextResponse.json(createdPicks, { status: 201 })
   } catch (error) {
     console.error('Error creating user picks:', error)

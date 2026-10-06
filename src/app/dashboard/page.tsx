@@ -90,11 +90,13 @@ function PickCard({
   labelClass,
   baker,
   onPick,
+  locked = false,
 }: {
   label: string
   labelClass: string
   baker: BakerRef | null
   onPick: () => void
+  locked?: boolean
 }) {
   if (!baker) {
     return (
@@ -118,8 +120,9 @@ function PickCard({
       </button>
     )
   }
+  const Frame = locked ? 'div' : 'button'
   return (
-    <button onClick={onPick} className="overflow-hidden rounded-[18px] border-2 border-rose bg-card text-left md:rounded-[20px]">
+    <Frame onClick={locked ? undefined : onPick} className="overflow-hidden rounded-[18px] border-2 border-rose bg-card text-left md:rounded-[20px]">
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img src={baker.imageUrl ?? ''} alt="" className="block h-[130px] w-full object-cover object-[50%_20%] md:h-[240px]" />
       <div className="flex items-center justify-between px-3 py-2.5 md:px-5 md:py-4">
@@ -127,9 +130,13 @@ function PickCard({
           <div className={`text-[11px] font-bold uppercase tracking-[.08em] md:text-[13px] ${labelClass}`}>{label}</div>
           <div className="font-display text-2xl md:text-[30px]">{baker.name}</div>
         </div>
-        <span className="hidden font-semibold text-rose-deep hover:text-rose-dark md:inline">Change</span>
+        {locked ? (
+          <span className="hidden text-sm font-semibold text-ink-faint md:inline">🔒 Locked in</span>
+        ) : (
+          <span className="hidden font-semibold text-rose-deep hover:text-rose-dark md:inline">Change</span>
+        )}
       </div>
-    </button>
+    </Frame>
   )
 }
 
@@ -227,6 +234,8 @@ export default function Dashboard() {
   const weekly = myPicks.filter(p => p.episodeId && p.episodeId === episode?.id)
   const myStarBaker = weekly.find(p => p.pickType === 'STAR_BAKER')?.contestantId ?? null
   const myElimination = weekly.find(p => p.pickType === 'ELIMINATION')?.contestantId ?? null
+  // Saved picks are locked; only an admin can reset them
+  const weeklyLocked = !!myStarBaker && !!myElimination
 
   const starBakerUses = useMemo(() => {
     const uses = new Map<string, number>()
@@ -245,7 +254,10 @@ export default function Dashboard() {
       body: JSON.stringify({ seasonId, picks }),
     })
     if (!res.ok) {
-      alert('Sorry, your picks could not be saved. Please try again.')
+      const body = await res.json().catch(() => null)
+      alert(res.status === 409 && body?.error ? body.error : 'Sorry, your picks could not be saved. Please try again.')
+      setPicker(null)
+      await refresh()
       return
     }
     setPicker(null)
@@ -380,10 +392,7 @@ export default function Dashboard() {
                     })}
                   </div>
                   <p className="mt-[18px] text-base text-ink-muted">
-                    {consensus}{' '}
-                    <button onClick={() => setPicker({ kind: 'weekly', tab: 'sb' })} className="font-semibold text-rose-deep hover:text-rose-dark">
-                      Change your picks
-                    </button>
+                    {consensus}
                   </p>
                 </div>
               ) : (
@@ -396,11 +405,12 @@ export default function Dashboard() {
                     </p>
                   </div>
                   <div className="grid grid-cols-2 gap-2.5 md:gap-5">
-                    <PickCard label="Star Baker" labelClass="text-rose-deep" baker={bakerById(myStarBaker)} onPick={() => setPicker({ kind: 'weekly', tab: 'sb' })} />
+                    <PickCard label="Star Baker" labelClass="text-rose-deep" baker={bakerById(myStarBaker)} locked={weeklyLocked} onPick={() => setPicker({ kind: 'weekly', tab: 'sb' })} />
                     <PickCard
                       label="Going home"
                       labelClass="text-blue-deep"
                       baker={bakerById(myElimination)}
+                      locked={weeklyLocked}
                       onPick={() => setPicker({ kind: 'weekly', tab: myStarBaker ? 'el' : 'sb' })}
                     />
                   </div>
@@ -418,6 +428,7 @@ export default function Dashboard() {
                           {submission.submittedCount} of {submission.totalCount}
                         </b>{' '}
                         in the tent. {waitingOn.length > 0 && <>Still waiting on {listNames(waitingOn)}.</>}
+                        {weeklyLocked && <> Your picks are locked in.</>}
                       </span>
                     </div>
                   )}
