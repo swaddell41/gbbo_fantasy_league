@@ -1,9 +1,13 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // The old separate picks page was folded into /dashboard
+  // Older player pages were folded into /dashboard ("The Tent")
   async redirects() {
-    return [{ source: "/user-dashboard", destination: "/dashboard", permanent: false }];
+    return ["/user-dashboard", "/standings"].map(source => ({
+      source,
+      destination: "/dashboard",
+      permanent: false,
+    }));
   },
 };
 

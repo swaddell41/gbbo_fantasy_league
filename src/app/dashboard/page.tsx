@@ -3,10 +3,11 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
-import Link from 'next/link'
 import { usePolling } from '@/hooks/usePolling'
 import TentShell from '@/components/tent/TentShell'
 import Avatar from '@/components/tent/Avatar'
+import { HistoryRows, PlayerHistorySheet, pointsWord, type History } from '@/components/tent/PlayerHistory'
+import { SCORING_RULES_TEXT } from '@/lib/scoring'
 import {
   firstName,
   listNames,
@@ -73,20 +74,6 @@ interface Recap {
   eliminated: BakerRef | null
   anyPicks: boolean
   players: { userId: string; name: string | null; points: number; reason: string; picked: boolean }[]
-}
-
-interface History {
-  rank: number
-  totalScore: number
-  finalists: BakerRef[]
-  starBakerMaxedOut: string[]
-  rows: {
-    episodeNumber: number
-    title: string
-    starBaker: (BakerRef & { points: number }) | null
-    goingHome: (BakerRef & { points: number }) | null
-    total: number
-  }[]
 }
 
 type Picker = { kind: 'weekly'; tab: 'sb' | 'el' } | { kind: 'finalists' } | null
@@ -172,6 +159,8 @@ export default function Dashboard() {
   const [bakesSoFar, setBakesSoFar] = useState(0)
   const [history, setHistory] = useState<History | null>(null)
   const [picker, setPicker] = useState<Picker>(null)
+  // Whose pick history is open, from tapping a leaderboard row
+  const [viewing, setViewing] = useState<string | null>(null)
 
   useEffect(() => {
     if (status === 'loading') return
@@ -291,6 +280,17 @@ export default function Dashboard() {
       />
     )
   }
+  if (viewing && seasonId) {
+    return (
+      <PlayerHistorySheet
+        seasonId={seasonId}
+        userId={viewing}
+        isMe={viewing === myId}
+        color={colorOf(viewing)}
+        onClose={() => setViewing(null)}
+      />
+    )
+  }
   if (picker?.kind === 'finalists') {
     return (
       <FinalistPicker
@@ -326,7 +326,7 @@ export default function Dashboard() {
   })()
 
   return (
-    <TentShell active="tent" myColor={colorOf(myId)}>
+    <TentShell myColor={colorOf(myId)}>
       {!season ? (
         <div className="px-[22px] py-10 md:px-12">
           <h2 className="font-display text-[46px] leading-none md:text-[76px]">The tent’s packed away</h2>
@@ -351,7 +351,7 @@ export default function Dashboard() {
                   </p>
                   <h2 className="mb-2 mt-1.5 font-display text-[46px] leading-none md:text-[64px]">The ovens are on</h2>
                   <p className="mb-6 text-[17px] text-ink-muted md:text-lg">Here’s who everyone’s backing this week.</p>
-                  <div className={`grid grid-cols-2 gap-3.5 ${everyonesPicks.length > 4 ? 'md:grid-cols-3' : ''}`}>
+                  <div className={`grid gap-3.5 sm:grid-cols-2 ${everyonesPicks.length > 4 ? 'md:grid-cols-3' : ''}`}>
                     {everyonesPicks.map(p => {
                       const sb = p.weeklyPicks.find(w => w.pickType === 'STAR_BAKER')?.contestant
                       const el = p.weeklyPicks.find(w => w.pickType === 'ELIMINATION')?.contestant
@@ -444,33 +444,45 @@ export default function Dashboard() {
                   <span className="md:hidden">Leaderboard</span>
                   <span className="hidden md:inline">The leaderboard</span>
                 </h3>
-                <Link href="/standings" className="text-sm font-semibold text-rose-deep hover:text-rose-dark md:hidden">
-                  See all
-                </Link>
-                <span className="hidden text-sm text-ink-muted md:inline">
+                <span className="text-sm text-ink-muted">
                   after {bakesSoFar} {bakesSoFar === 1 ? 'bake' : 'bakes'}
                 </span>
               </div>
               <ol className="mt-2 flex flex-col md:mt-2.5">
-                {standings.map((s, i) => {
+                {standings.map(s => {
                   const mine = s.userId === myId
                   const move = movementLabel(s.movement)
                   return (
-                    <li
-                      key={s.userId}
-                      className={`${i >= 4 ? 'hidden md:grid' : 'grid'} grid-cols-[28px_1fr_auto] items-center gap-2.5 rounded-xl px-2.5 py-[9px] md:grid-cols-[40px_1fr_auto_56px] md:gap-3 md:rounded-[14px] md:px-3.5 md:py-3 ${mine ? 'bg-rose-tint' : ''}`}
-                    >
+                    <li key={s.userId}>
+                      <button
+                        onClick={() => setViewing(s.userId)}
+                        title={`See ${mine ? 'your' : `${firstName(s.userName)}’s`} picks`}
+                        className={`grid w-full grid-cols-[28px_1fr_auto_auto] items-center gap-2.5 rounded-xl px-2.5 py-[9px] text-left md:grid-cols-[40px_1fr_auto_56px] md:gap-3 md:rounded-[14px] md:px-3.5 md:py-3 ${mine ? 'bg-rose-tint' : 'hover:bg-oat'}`}
+                      >
                       <span className="font-display text-xl text-ink-faint md:text-[26px]">{s.rank}</span>
                       <span className={`text-base md:text-lg ${mine ? 'font-bold' : 'font-medium'}`}>
                         {firstName(s.userName)}
                         {mine && ' (you)'}
                       </span>
-                      <span className={`hidden text-sm font-semibold md:inline ${move.className}`}>{move.text}</span>
+                      <span className={`text-sm font-semibold ${move.className}`}>{move.text}</span>
                       <span className="text-right font-display text-xl md:text-[26px]">{s.totalScore}</span>
+                      </button>
                     </li>
                   )
                 })}
               </ol>
+              <p className="mt-1 px-2.5 text-[13px] text-ink-faint md:px-3.5">Tap a name to see their picks.</p>
+              <details className="mt-3 px-2.5 text-[15px] md:px-3.5">
+                <summary className="cursor-pointer font-semibold text-ink-muted">How scoring works</summary>
+                <div className="mt-3 flex flex-col gap-1.5">
+                  {SCORING_RULES_TEXT.map(r => (
+                    <div key={r.label} className="flex justify-between gap-4">
+                      <span>{r.label}</span>
+                      <b className={pointsClass(r.points)}>{signed(r.points)}</b>
+                    </div>
+                  ))}
+                </div>
+              </details>
             </div>
           </div>
 
@@ -526,35 +538,15 @@ export default function Dashboard() {
             )}
 
             {history && (
-              <div className="hidden rounded-3xl bg-card p-7 md:block">
+              <div className="rounded-[20px] bg-card p-[18px] md:rounded-3xl md:p-7">
                 <p className="text-[13px] font-bold uppercase tracking-[.1em] text-blue-deep">Your bakes so far</p>
-                <h3 className="mb-[18px] mt-1 font-display text-[34px]">
-                  {history.totalScore} {Math.abs(history.totalScore) === 1 ? 'point' : 'points'}, {ordinal(history.rank)} place
+                <h3 className="mb-[18px] mt-1 font-display text-[26px] md:text-[34px]">
+                  {pointsWord(history.totalScore)}, {ordinal(history.rank)} place
                 </h3>
                 {history.rows.length === 0 ? (
                   <p className="text-base text-ink-muted">Nothing scored yet. Your first points land after the next episode.</p>
                 ) : (
-                  <div className="flex flex-col gap-3">
-                    {history.rows.map(h => (
-                      <div key={h.episodeNumber} className="grid grid-cols-[110px_1fr_1fr_48px] items-center gap-3 border-t border-line py-3 text-base">
-                        <span className="text-ink-muted">
-                          Ep {h.episodeNumber} · {h.title.replace(/ Week$/, '')}
-                        </span>
-                        {[h.starBaker, h.goingHome].map((b, k) => (
-                          <span key={k} className="flex items-center gap-2">
-                            {b && (
-                              <>
-                                {/* eslint-disable-next-line @next/next/no-img-element */}
-                                <img src={b.imageUrl ?? ''} alt="" className="h-8 w-8 rounded-full object-cover" />
-                                {b.name} <span className={`font-bold ${pointsClass(b.points)}`}>{signed(b.points)}</span>
-                              </>
-                            )}
-                          </span>
-                        ))}
-                        <span className="text-right font-display text-[22px]">{signed(h.total)}</span>
-                      </div>
-                    ))}
-                  </div>
+                  <HistoryRows rows={history.rows} />
                 )}
                 {history.finalists.length > 0 && (
                   <p className="mt-3.5 text-[15px] text-ink-muted">
