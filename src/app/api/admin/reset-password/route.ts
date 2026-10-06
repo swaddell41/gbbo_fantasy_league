@@ -17,7 +17,7 @@ function generateTempPassword(): string {
 export async function POST(request: NextRequest) {
   try {
     const session = await getServerSession(authOptions)
-    if (!session || !session.user.isAdmin) {
+    if (!session || !session.user.canAdmin) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 

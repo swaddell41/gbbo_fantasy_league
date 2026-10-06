@@ -7,7 +7,7 @@ export async function POST(request: NextRequest) {
   try {
     // Check if user is admin
     const session = await getServerSession(authOptions)
-    if (!session || !session.user.isAdmin) {
+    if (!session || !session.user.canAdmin) {
       return NextResponse.json({ error: 'Admin access required' }, { status: 403 })
     }
 

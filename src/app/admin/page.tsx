@@ -34,7 +34,7 @@ export default function AdminDashboard() {
       return
     }
 
-    if (!session.user.isAdmin) {
+    if (!session.user.canAdmin) {
       router.push('/dashboard')
       return
     }
@@ -81,7 +81,7 @@ export default function AdminDashboard() {
     )
   }
 
-    if (!session || !session.user || !session.user.isAdmin) {
+    if (!session || !session.user || !session.user.canAdmin) {
     return null
   }
 
@@ -93,12 +93,19 @@ export default function AdminDashboard() {
             <h1 className="text-3xl font-bold text-gray-900">
               Admin Dashboard 🛠️
             </h1>
+            <div className="flex items-center gap-3">
+            {!session.user.isAdmin && (
+              <Link href="/dashboard" className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200">
+                Back to The Tent
+              </Link>
+            )}
             <button
               onClick={() => signOut({ callbackUrl: '/' })}
               className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
             >
               Sign Out
             </button>
+            </div>
           </div>
           
           <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
@@ -137,6 +144,15 @@ export default function AdminDashboard() {
               <div className="text-4xl mb-4">📊</div>
               <h3 className="text-lg font-semibold text-purple-800 mb-2">Scoring System</h3>
               <p className="text-purple-700">Calculate scores and view leaderboards</p>
+            </Link>
+
+            <Link
+              href="/admin/picks"
+              className="bg-amber-50 hover:bg-amber-100 p-6 rounded-lg border border-amber-200 transition-colors duration-200"
+            >
+              <div className="text-4xl mb-4">🔒</div>
+              <h3 className="text-lg font-semibold text-amber-800 mb-2">Picks</h3>
+              <p className="text-amber-700">See everyone’s picks and reset locked ones</p>
             </Link>
 
             <Link

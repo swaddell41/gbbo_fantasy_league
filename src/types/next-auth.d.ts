@@ -7,7 +7,10 @@ declare module 'next-auth' {
       email: string
       name?: string | null
       image?: string | null
+      // Admin-only account: not a player, lands on /admin
       isAdmin: boolean
+      // May use the admin tools (admin-only accounts + ADMIN_EMAILS players)
+      canAdmin: boolean
       mustChangePassword: boolean
     }
   }
