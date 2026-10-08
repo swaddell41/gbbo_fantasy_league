@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, Suspense } from 'react'
-import { useSession, signOut } from 'next-auth/react'
+import { useSession } from 'next-auth/react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
@@ -171,27 +171,27 @@ function ImportContestantsContent() {
 
   if (status === 'loading' || loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
-        <div className="bg-white rounded-xl shadow-lg p-8">
+        <div className="bg-card rounded-2xl p-8">
           <div className="flex justify-between items-center mb-8">
             <div>
-              <h1 className="text-3xl font-bold text-gray-900">Contestant Management</h1>
-              <p className="text-gray-600 mt-2">Import contestants from the official GBBO website or manage them manually</p>
+              <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Contestant Management</h1>
+              <p className="text-ink-muted mt-2">Import contestants from the official GBBO website or manage them manually</p>
             </div>
             <Link
               href="/admin"
-              className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+              className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
             >
               Back to Admin
             </Link>
@@ -199,67 +199,67 @@ function ImportContestantsContent() {
 
           {!selectedSeason ? (
             <div className="text-center py-8">
-              <h3 className="text-lg font-semibold text-gray-800 mb-4">Select a Season</h3>
+              <h3 className="font-display font-normal text-2xl text-ink mb-4">Select a Season</h3>
               <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 max-w-4xl mx-auto">
                 {seasons.map((season) => (
                   <button
                     key={season.id}
                     onClick={() => setSelectedSeason(season)}
-                    className="bg-amber-50 hover:bg-amber-100 p-6 rounded-lg border border-amber-200 transition-colors duration-200 text-left"
+                    className="bg-oat hover:bg-oat p-6 rounded-2xl border border-line transition-colors duration-200 text-left"
                   >
-                    <h4 className="text-lg font-semibold text-amber-800">{season.name}</h4>
-                    <p className="text-amber-700">Year: {season.year}</p>
+                    <h4 className="text-lg font-semibold text-ink">{season.name}</h4>
+                    <p className="text-ink">Year: {season.year}</p>
                   </button>
                 ))}
               </div>
             </div>
           ) : (
             <>
-              <div className="bg-amber-50 p-4 rounded-lg mb-6">
-                <h3 className="text-lg font-semibold text-amber-800">
+              <div className="bg-oat p-4 rounded-2xl mb-6">
+                <h3 className="font-display font-normal text-2xl text-ink">
                   Managing contestants for: {selectedSeason.name} ({selectedSeason.year})
                 </h3>
                 <button
                   onClick={() => setSelectedSeason(null)}
-                  className="text-amber-600 hover:text-amber-700 text-sm mt-2"
+                  className="text-rose-deep hover:text-rose-dark text-sm mt-2"
                 >
                   ← Change Season
                 </button>
               </div>
 
               <div className="space-y-6">
-                <div className="bg-blue-50 p-6 rounded-lg">
-                  <h3 className="text-lg font-semibold text-blue-800 mb-2">GBBO 2026 Contestants</h3>
-                  <p className="text-blue-700 mb-4">
+                <div className="bg-oat p-6 rounded-2xl">
+                  <h3 className="font-display font-normal text-2xl text-ink mb-2">GBBO 2026 Contestants</h3>
+                  <p className="text-ink mb-4">
                     This will import all 12 contestants from the official GBBO website with their photos and bios.
                   </p>
                   <button
                     onClick={importContestants}
                     disabled={importing}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-3 rounded-full transition-colors duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {importing ? 'Importing...' : 'Import GBBO 2026 Contestants'}
                   </button>
                 </div>
 
                 {/* Contestant Management Section */}
-                <div className="bg-white border border-gray-200 rounded-lg p-6">
+                <div className="bg-card border border-input rounded-2xl p-6">
                   <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-semibold text-gray-800">
+                    <h3 className="font-display font-normal text-2xl text-ink">
                       Current Contestants ({contestants.length})
                     </h3>
                     <div className="flex gap-2">
                       {contestants.length > 0 && (
                         <button
                           onClick={deleteAllContestants}
-                          className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                          className="bg-rose-deep text-cream font-bold hover:bg-rose-dark px-4 py-2 rounded-full transition-colors duration-200"
                         >
                           Delete All
                         </button>
                       )}
                       <button
                         onClick={() => setShowForm(!showForm)}
-                        className="bg-amber-600 hover:bg-amber-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-4 py-2 rounded-full transition-colors duration-200"
                       >
                         {showForm ? 'Cancel' : 'Add Contestant'}
                       </button>
@@ -267,11 +267,11 @@ function ImportContestantsContent() {
                   </div>
 
                   {showForm && (
-                    <div className="bg-gray-50 p-6 rounded-lg mb-6">
-                      <h4 className="text-lg font-semibold text-gray-800 mb-4">Add New Contestant</h4>
+                    <div className="bg-oat p-6 rounded-2xl mb-6">
+                      <h4 className="text-lg font-semibold text-ink mb-4">Add New Contestant</h4>
                       <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                          <label htmlFor="name" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="name" className="block text-sm font-medium text-ink-muted">
                             Contestant Name
                           </label>
                           <input
@@ -279,13 +279,13 @@ function ImportContestantsContent() {
                             id="name"
                             value={formData.name}
                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-gray-900"
+                            className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose text-ink"
                             placeholder="e.g., Paul Hollywood"
                             required
                           />
                         </div>
                         <div>
-                          <label htmlFor="imageUrl" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="imageUrl" className="block text-sm font-medium text-ink-muted">
                             Image URL (optional)
                           </label>
                           <input
@@ -293,12 +293,12 @@ function ImportContestantsContent() {
                             id="imageUrl"
                             value={formData.imageUrl}
                             onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-gray-900"
+                            className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose text-ink"
                             placeholder="https://example.com/image.jpg"
                           />
                         </div>
                         <div>
-                          <label htmlFor="bio" className="block text-sm font-medium text-gray-700">
+                          <label htmlFor="bio" className="block text-sm font-medium text-ink-muted">
                             Bio (optional)
                           </label>
                           <textarea
@@ -306,13 +306,13 @@ function ImportContestantsContent() {
                             value={formData.bio}
                             onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
                             rows={3}
-                            className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-amber-500 focus:border-amber-500 text-gray-900"
+                            className="mt-1 block w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-rose focus:border-rose text-ink"
                             placeholder="Tell us about this contestant..."
                           />
                         </div>
                         <button
                           type="submit"
-                          className="bg-amber-600 hover:bg-amber-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                          className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-2 rounded-full transition-colors duration-200"
                         >
                           Add Contestant
                         </button>
@@ -322,14 +322,14 @@ function ImportContestantsContent() {
 
                   <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
                     {contestants.length === 0 ? (
-                      <div className="col-span-full text-center py-8 text-gray-500">
+                      <div className="col-span-full text-center py-8 text-ink-faint">
                         No contestants added yet. Import from GBBO or add manually above!
                       </div>
                     ) : (
                       contestants.map((contestant) => (
                         <div
                           key={contestant.id}
-                          className="bg-white border border-gray-200 rounded-lg p-6 hover:shadow-md transition-shadow duration-200"
+                          className="bg-card border border-input rounded-2xl p-6 hover: transition- duration-200"
                         >
                           <div className="text-center">
                             {contestant.imageUrl ? (
@@ -339,20 +339,20 @@ function ImportContestantsContent() {
                                 className="w-24 h-24 rounded-full mx-auto mb-4 object-cover"
                               />
                             ) : (
-                              <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-gray-200 flex items-center justify-center">
+                              <div className="w-24 h-24 rounded-full mx-auto mb-4 bg-line flex items-center justify-center">
                                 <span className="text-2xl">👨‍🍳</span>
                               </div>
                             )}
-                            <h4 className="text-lg font-semibold text-gray-900">{contestant.name}</h4>
+                            <h4 className="text-lg font-semibold text-ink">{contestant.name}</h4>
                             {contestant.bio && (
-                              <p className="text-sm text-gray-600 mt-2">{contestant.bio}</p>
+                              <p className="text-sm text-ink-muted mt-2">{contestant.bio}</p>
                             )}
                             <div className="mt-4">
                               <span
                                 className={`px-3 py-1 rounded-full text-sm font-medium ${
                                   contestant.isEliminated
-                                    ? 'bg-red-100 text-red-800'
-                                    : 'bg-green-100 text-green-800'
+                                    ? 'bg-oat text-rose-deep'
+                                    : 'bg-oat text-positive'
                                 }`}
                               >
                                 {contestant.isEliminated ? 'Eliminated' : 'Active'}
@@ -366,13 +366,13 @@ function ImportContestantsContent() {
                 </div>
 
                 {importedContestants.length > 0 && (
-                  <div className="bg-green-50 p-6 rounded-lg">
-                    <h3 className="text-lg font-semibold text-green-800 mb-4">
+                  <div className="bg-oat p-6 rounded-2xl">
+                    <h3 className="font-display font-normal text-2xl text-positive mb-4">
                       Successfully Imported ({importedContestants.length} contestants)
                     </h3>
                     <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4">
                       {importedContestants.map((contestant, index) => (
-                        <div key={index} className="bg-white p-4 rounded-lg border border-green-200">
+                        <div key={index} className="bg-card p-4 rounded-2xl border border-line">
                           <div className="text-center">
                             {contestant.imageUrl && (
                               <img
@@ -381,8 +381,8 @@ function ImportContestantsContent() {
                                 className="w-16 h-16 rounded-full mx-auto mb-2 object-cover"
                               />
                             )}
-                            <h4 className="font-semibold text-gray-900">{contestant.name}</h4>
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                            <h4 className="font-semibold text-ink">{contestant.name}</h4>
+                            <p className="text-sm text-ink-muted mt-1 line-clamp-2">
                               {contestant.bio.substring(0, 100)}...
                             </p>
                           </div>
@@ -392,7 +392,7 @@ function ImportContestantsContent() {
                     <div className="mt-4 text-center">
                       <Link
                         href={`/admin/contestants?seasonId=${selectedSeason.id}`}
-                        className="bg-green-600 hover:bg-green-700 text-white px-6 py-2 rounded-lg transition-colors duration-200"
+                        className="bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-2 rounded-full transition-colors duration-200"
                       >
                         View All Contestants
                       </Link>

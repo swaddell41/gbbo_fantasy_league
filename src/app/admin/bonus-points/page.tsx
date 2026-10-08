@@ -190,29 +190,29 @@ export default function BonusPointsPage() {
 
   if (status === 'loading') {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-amber-50 to-orange-100">
+      <div className="min-h-screen flex items-center justify-center bg-cream">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-rose mx-auto"></div>
+          <p className="mt-4 text-ink-muted">Loading...</p>
         </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-6xl mx-auto">
           {/* Header */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="bg-card rounded-2xl p-6 mb-6">
             <div className="flex justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Bonus Points Management</h1>
-                <p className="text-gray-600 mt-2">Manage technical challenges, handshakes, and soggy bottoms</p>
+                <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Bonus Points Management</h1>
+                <p className="text-ink-muted mt-2">Manage technical challenges, handshakes, and soggy bottoms</p>
               </div>
               <button
                 onClick={() => router.push('/admin')}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
               >
                 Back to Admin
               </button>
@@ -220,8 +220,8 @@ export default function BonusPointsPage() {
           </div>
 
           {/* Season Selection */}
-          <div className="bg-white rounded-lg shadow p-6 mb-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Season</h2>
+          <div className="bg-card rounded-2xl p-6 mb-6">
+            <h2 className="font-display font-normal text-[28px] text-ink mb-4">Select Season</h2>
             <select
               value={selectedSeason?.id || ''}
               onChange={(e) => {
@@ -229,7 +229,7 @@ export default function BonusPointsPage() {
                 setSelectedSeason(season || null)
                 setSelectedEpisode(null)
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+              className="w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
             >
               <option value="">Select a season...</option>
               {seasons.map((season) => (
@@ -242,15 +242,15 @@ export default function BonusPointsPage() {
 
           {/* Episode Selection */}
           {selectedSeason && (
-            <div className="bg-white rounded-lg shadow p-6 mb-6">
-              <h2 className="text-xl font-semibold text-gray-800 mb-4">Select Episode</h2>
+            <div className="bg-card rounded-2xl p-6 mb-6">
+              <h2 className="font-display font-normal text-[28px] text-ink mb-4">Select Episode</h2>
               <select
                 value={selectedEpisode?.id || ''}
                 onChange={(e) => {
                   const episode = episodes.find(ep => ep.id === e.target.value)
                   setSelectedEpisode(episode || null)
                 }}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-900"
+                className="w-full px-3 py-2 border border-input rounded-2xl focus:outline-none focus:ring-2 focus:ring-rose text-ink"
               >
                 <option value="">Select an episode...</option>
                 {episodes.map((episode) => (
@@ -267,18 +267,18 @@ export default function BonusPointsPage() {
           {selectedEpisode && (
             <div className="space-y-6">
               {/* Technical Challenge Winner */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Technical Challenge Winner</h3>
-                <p className="text-gray-600 mb-4">Select who won the technical challenge (+1 point for Star Baker picks)</p>
+              <div className="bg-card rounded-2xl p-6">
+                <h3 className="font-display font-normal text-2xl text-ink mb-4">Technical Challenge Winner</h3>
+                <p className="text-ink-muted mb-4">Select who won the technical challenge (+1 point for Star Baker picks)</p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {contestants.map((contestant) => (
                     <button
                       key={contestant.id}
                       onClick={() => handleTechnicalChallengeWinner(contestant.id)}
-                      className={`p-3 rounded-lg border-2 transition-colors duration-200 text-left ${
+                      className={`p-3 rounded-2xl border-2 transition-colors duration-200 text-left ${
                         selectedEpisode.technicalChallengeWinnerId === contestant.id
-                          ? 'border-green-500 bg-green-100'
-                          : 'border-gray-200 bg-white hover:border-green-300 hover:bg-green-50'
+                          ? 'border-rose bg-oat'
+                          : 'border-input bg-card hover:border-line hover:bg-oat'
                       }`}
                     >
                       <div className="flex items-center gap-2">
@@ -289,7 +289,7 @@ export default function BonusPointsPage() {
                             className="w-8 h-8 rounded-full object-cover"
                           />
                         )}
-                        <span className="font-medium text-gray-900">
+                        <span className="font-medium text-ink">
                           {contestant.name}
                           {selectedEpisode.technicalChallengeWinnerId === contestant.id && ' ✓'}
                         </span>
@@ -300,9 +300,9 @@ export default function BonusPointsPage() {
               </div>
 
               {/* Handshakes */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Paul Hollywood Handshakes</h3>
-                <p className="text-gray-600 mb-4">Select contestants who received handshakes (+1 point each for Star Baker picks)</p>
+              <div className="bg-card rounded-2xl p-6">
+                <h3 className="font-display font-normal text-2xl text-ink mb-4">Paul Hollywood Handshakes</h3>
+                <p className="text-ink-muted mb-4">Select contestants who received handshakes (+1 point each for Star Baker picks)</p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {contestants.map((contestant) => {
                     const hasHandshake = selectedEpisode.handshakes?.some(h => h.contestantId === contestant.id) || false
@@ -310,10 +310,10 @@ export default function BonusPointsPage() {
                       <button
                         key={contestant.id}
                         onClick={() => handleHandshake(contestant.id)}
-                        className={`p-3 rounded-lg border-2 transition-colors duration-200 text-left ${
+                        className={`p-3 rounded-2xl border-2 transition-colors duration-200 text-left ${
                           hasHandshake
-                            ? 'border-yellow-500 bg-yellow-100'
-                            : 'border-gray-200 bg-white hover:border-yellow-300 hover:bg-yellow-50'
+                            ? 'border-rose bg-oat'
+                            : 'border-input bg-card hover:border-line hover:bg-oat'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -324,7 +324,7 @@ export default function BonusPointsPage() {
                               className="w-8 h-8 rounded-full object-cover"
                             />
                           )}
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-ink">
                             {contestant.name}
                             {hasHandshake && ' 🤝'}
                           </span>
@@ -336,9 +336,9 @@ export default function BonusPointsPage() {
               </div>
 
               {/* Soggy Bottoms */}
-              <div className="bg-white rounded-lg shadow p-6">
-                <h3 className="text-lg font-semibold text-gray-800 mb-4">Soggy Bottoms</h3>
-                <p className="text-gray-600 mb-4">Select contestants who got soggy bottom comments (-1 point each for Star Baker picks)</p>
+              <div className="bg-card rounded-2xl p-6">
+                <h3 className="font-display font-normal text-2xl text-ink mb-4">Soggy Bottoms</h3>
+                <p className="text-ink-muted mb-4">Select contestants who got soggy bottom comments (-1 point each for Star Baker picks)</p>
                 <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-3">
                   {contestants.map((contestant) => {
                     const hasSoggyBottom = selectedEpisode.soggyBottoms?.some(s => s.contestantId === contestant.id) || false
@@ -346,10 +346,10 @@ export default function BonusPointsPage() {
                       <button
                         key={contestant.id}
                         onClick={() => handleSoggyBottom(contestant.id)}
-                        className={`p-3 rounded-lg border-2 transition-colors duration-200 text-left ${
+                        className={`p-3 rounded-2xl border-2 transition-colors duration-200 text-left ${
                           hasSoggyBottom
-                            ? 'border-red-500 bg-red-100'
-                            : 'border-gray-200 bg-white hover:border-red-300 hover:bg-red-50'
+                            ? 'border-rose-deep bg-oat'
+                            : 'border-input bg-card hover:border-line hover:bg-oat'
                         }`}
                       >
                         <div className="flex items-center gap-2">
@@ -360,7 +360,7 @@ export default function BonusPointsPage() {
                               className="w-8 h-8 rounded-full object-cover"
                             />
                           )}
-                          <span className="font-medium text-gray-900">
+                          <span className="font-medium text-ink">
                             {contestant.name}
                             {hasSoggyBottom && ' 💧'}
                           </span>

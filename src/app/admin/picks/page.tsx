@@ -93,20 +93,20 @@ export default function AdminPicksPage() {
   const pickName = (p: PlayerPicks, type: string) => p.weeklyPicks.find(w => w.pickType === type)?.contestant.name ?? '—'
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-amber-50 to-orange-100">
+    <div className="min-h-screen bg-cream">
       <div className="container mx-auto px-4 py-8">
         <div className="max-w-4xl mx-auto space-y-6">
-          <div className="bg-white rounded-lg shadow p-6">
+          <div className="bg-card rounded-2xl p-6">
             <div className="flex flex-wrap gap-4 justify-between items-center">
               <div>
-                <h1 className="text-3xl font-bold text-gray-900">Picks</h1>
-                <p className="text-gray-600 mt-2">
+                <h1 className="font-display font-normal text-[40px] md:text-[48px] leading-none text-ink">Picks</h1>
+                <p className="text-ink-muted mt-2">
                   Players can’t change picks once submitted. Reset a player’s picks here to let them pick again.
                 </p>
               </div>
               <button
                 onClick={() => router.push('/admin')}
-                className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-lg transition-colors duration-200"
+                className="bg-oat text-ink font-bold hover:bg-line px-4 py-2 rounded-full transition-colors duration-200"
               >
                 Back to Admin
               </button>
@@ -115,7 +115,7 @@ export default function AdminPicksPage() {
               <select
                 value={seasonId}
                 onChange={e => setSeasonId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                className="w-full px-3 py-2 border border-input rounded-2xl text-ink"
               >
                 {seasons.map(s => (
                   <option key={s.id} value={s.id}>
@@ -126,7 +126,7 @@ export default function AdminPicksPage() {
               <select
                 value={episodeId}
                 onChange={e => setEpisodeId(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg text-gray-900"
+                className="w-full px-3 py-2 border border-input rounded-2xl text-ink"
               >
                 {episodes.map(e => (
                   <option key={e.id} value={e.id}>
@@ -138,10 +138,10 @@ export default function AdminPicksPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Weekly picks</h2>
-            <table className="w-full text-sm text-gray-900">
-              <thead className="text-left text-xs uppercase tracking-wider text-gray-500">
+          <div className="bg-card rounded-2xl p-6">
+            <h2 className="font-display font-normal text-[28px] text-ink mb-4">Weekly picks</h2>
+            <table className="w-full text-sm text-ink">
+              <thead className="text-left text-xs uppercase tracking-wider text-ink-faint">
                 <tr>
                   <th className="py-2">Player</th>
                   <th className="py-2">Star Baker</th>
@@ -157,7 +157,7 @@ export default function AdminPicksPage() {
                     <td className="py-3">{pickName(p, 'ELIMINATION')}</td>
                     <td className="py-3 text-right">
                       {p.weeklyPicks.length > 0 && (
-                        <button onClick={() => reset(p, 'weekly')} className="text-red-600 hover:text-red-800 font-medium">
+                        <button onClick={() => reset(p, 'weekly')} className="text-rose-deep hover:text-rose-deep font-medium">
                           Reset
                         </button>
                       )}
@@ -168,9 +168,9 @@ export default function AdminPicksPage() {
             </table>
           </div>
 
-          <div className="bg-white rounded-lg shadow p-6">
-            <h2 className="text-xl font-semibold text-gray-800 mb-4">Finalists</h2>
-            <table className="w-full text-sm text-gray-900">
+          <div className="bg-card rounded-2xl p-6">
+            <h2 className="font-display font-normal text-[28px] text-ink mb-4">Finalists</h2>
+            <table className="w-full text-sm text-ink">
               <tbody className="divide-y divide-gray-200">
                 {finalists.map(p => (
                   <tr key={p.user.id}>
@@ -180,7 +180,7 @@ export default function AdminPicksPage() {
                     </td>
                     <td className="py-3 text-right">
                       {p.finalistPicks.length > 0 && (
-                        <button onClick={() => reset(p, 'finalists')} className="text-red-600 hover:text-red-800 font-medium">
+                        <button onClick={() => reset(p, 'finalists')} className="text-rose-deep hover:text-rose-deep font-medium">
                           Reset
                         </button>
                       )}
