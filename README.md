@@ -35,7 +35,7 @@ A fantasy league app for The Great British Bake Off where friends can pick their
 2. **Set up your environment:**
    - Copy `.env.example` to `.env`
    - Update the `DATABASE_URL` in `.env` with your database credentials
-   - Generate a secure `NEXTAUTH_SECRET` for authentication
+ic    - Generate a secure `data` for authentication
 
 3. **Run database migrations:**
    ```bash
