@@ -13,6 +13,8 @@ export const SCORING_RULES = {
   HANDSHAKE: 1,
   SOGGY_BOTTOM: -1,
   FINALIST_CORRECT: 3,
+  // The final: the only pick that week is who wins the series
+  WINNER_CORRECT: 3,
 } as const
 
 export const SCORING_RULES_TEXT: { label: string; points: number }[] = [
@@ -24,9 +26,10 @@ export const SCORING_RULES_TEXT: { label: string; points: number }[] = [
   { label: 'Hollywood handshake for your Star Baker pick', points: SCORING_RULES.HANDSHAKE },
   { label: 'Soggy bottom for your Star Baker pick', points: SCORING_RULES.SOGGY_BOTTOM },
   { label: 'Each finalist pick who makes the final', points: SCORING_RULES.FINALIST_CORRECT },
+  { label: 'Final: your pick wins the series', points: SCORING_RULES.WINNER_CORRECT },
 ]
 
-export type PickType = 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION'
+export type PickType = 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION' | 'WINNER'
 
 export interface ScoringPick {
   id: string
@@ -42,6 +45,8 @@ export interface ScoringEpisode {
   starBakerId: string | null
   eliminatedId: string | null
   technicalChallengeWinnerId: string | null
+  isFinal: boolean
+  winnerId: string | null
   handshakeContestantIds: string[]
   soggyBottomContestantIds: string[]
 }
@@ -55,6 +60,7 @@ export interface UserScoreBreakdown {
   correctElimination: number
   wrongStarBaker: number
   wrongElimination: number
+  correctWinner: number
   technicalChallengeWins: number
   handshakes: number
   soggyBottoms: number
@@ -80,6 +86,7 @@ export function emptyBreakdown(userId: string): UserScoreBreakdown {
     correctElimination: 0,
     wrongStarBaker: 0,
     wrongElimination: 0,
+    correctWinner: 0,
     technicalChallengeWins: 0,
     handshakes: 0,
     soggyBottoms: 0,
@@ -114,6 +121,11 @@ export function scoreEliminationPick(contestantId: string, ep: ScoringEpisode) {
   const wrong = ep.starBakerId === contestantId
   const points = (correct ? R.ELIMINATION_CORRECT : 0) + (wrong ? R.ELIMINATION_PICK_STAR_BAKER : 0)
   return { points, correct, wrong }
+}
+
+export function scoreWinnerPick(contestantId: string, ep: ScoringEpisode) {
+  const correct = !!ep.winnerId && ep.winnerId === contestantId
+  return { points: correct ? SCORING_RULES.WINNER_CORRECT : 0, correct }
 }
 
 export function scoreSeason(
@@ -155,7 +167,11 @@ export function scoreSeason(
     if (!ep?.isCompleted) continue
 
     let points: number
-    if (pick.pickType === 'STAR_BAKER') {
+    if (pick.pickType === 'WINNER') {
+      const r = scoreWinnerPick(pick.contestantId, ep)
+      points = r.points
+      if (r.correct) u.correctWinner++
+    } else if (pick.pickType === 'STAR_BAKER') {
       const r = scoreStarBakerPick(pick.contestantId, ep)
       points = r.points
       if (r.correct) u.correctStarBaker++

@@ -8,6 +8,8 @@ const episode = (overrides: Partial<ScoringEpisode> = {}): ScoringEpisode => ({
   starBakerId: 'sb',
   eliminatedId: 'out',
   technicalChallengeWinnerId: null,
+  isFinal: false,
+  winnerId: null,
   handshakeContestantIds: [],
   soggyBottomContestantIds: [],
   ...overrides,
@@ -85,4 +87,28 @@ test('scoring is idempotent — same inputs, same totals', () => {
   const picks = [pick('STAR_BAKER', 'sb'), pick('ELIMINATION', 'out')]
   const eps = [episode({ handshakeContestantIds: ['sb'] })]
   assert.deepEqual(scoreSeason(picks, eps, new Set()), scoreSeason(picks, eps, new Set()))
+})
+
+test('final: winner pick scores only when that baker wins the series', () => {
+  const final = episode({ id: 'final', isFinal: true, starBakerId: null, eliminatedId: null, winnerId: 'champ' })
+  const right = total([pick('WINNER', 'champ', 'final')], [final])
+  assert.equal(right.totalScore, 3)
+  assert.equal(right.correctWinner, 1)
+  assert.equal(right.weeklyScore, 3)
+  assert.equal(total([pick('WINNER', 'x', 'final')], [final]).totalScore, 0)
+})
+
+test('final: nothing scores until the result is in', () => {
+  const final = episode({ id: 'final', isFinal: true, isCompleted: false, starBakerId: null, eliminatedId: null })
+  assert.equal(total([pick('WINNER', 'champ', 'final')], [final]).totalScore, 0)
+})
+
+test('final adds to the running season total', () => {
+  const final = episode({ id: 'final', isFinal: true, starBakerId: null, eliminatedId: null, winnerId: 'champ' })
+  const u = total(
+    [pick('STAR_BAKER', 'sb'), pick('ELIMINATION', 'out'), pick('WINNER', 'champ', 'final'), pick('FINALIST', 'champ')],
+    [episode(), final],
+    ['champ'],
+  )
+  assert.equal(u.totalScore, 5 + 3 + 3)
 })

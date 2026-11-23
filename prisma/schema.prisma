@@ -91,6 +91,7 @@ model Contestant {
   starBakerEpisodes Episode[] @relation("EpisodeStarBaker")
   eliminatedEpisodes Episode[] @relation("EpisodeEliminated")
   technicalChallengeWins Episode[] @relation("EpisodeTechnicalWinner")
+  seriesWins  Episode[] @relation("EpisodeWinner")
   handshakes  EpisodeHandshake[]
   soggyBottoms EpisodeSoggyBottom[]
 
@@ -108,6 +109,9 @@ model Episode {
   eliminatedId String?
   isCompleted Boolean  @default(false)
   technicalChallengeWinnerId String?
+  // The final: players pick only the series winner, and winnerId is the result
+  isFinal     Boolean  @default(false)
+  winnerId    String?
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
 
@@ -117,6 +121,7 @@ model Episode {
   starBaker   Contestant? @relation("EpisodeStarBaker", fields: [starBakerId], references: [id])
   eliminated  Contestant? @relation("EpisodeEliminated", fields: [eliminatedId], references: [id])
   technicalChallengeWinner Contestant? @relation("EpisodeTechnicalWinner", fields: [technicalChallengeWinnerId], references: [id])
+  winner      Contestant? @relation("EpisodeWinner", fields: [winnerId], references: [id])
   handshakes  EpisodeHandshake[]
   soggyBottoms EpisodeSoggyBottom[]
 
@@ -175,4 +180,5 @@ enum PickType {
   FINALIST
   STAR_BAKER
   ELIMINATION
+  WINNER
 }

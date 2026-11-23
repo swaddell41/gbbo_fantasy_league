@@ -20,6 +20,7 @@ import {
 import type { Baker } from './PickerSheet'
 import FinalistPicker from './FinalistPicker'
 import WeeklyPicker from './WeeklyPicker'
+import WinnerPicker from './WinnerPicker'
 
 interface Season {
   id: string
@@ -32,13 +33,14 @@ interface Episode {
   title: string
   episodeNumber: number
   isActive: boolean
+  isFinal: boolean
 }
 
 interface MyPick {
   id: string
   contestantId: string
   episodeId: string | null
-  pickType: 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION'
+  pickType: 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION' | 'WINNER'
 }
 
 interface SubmissionStatus {
@@ -68,7 +70,8 @@ interface BakerRef {
 }
 
 interface Recap {
-  episode: { episodeNumber: number; title: string }
+  episode: { episodeNumber: number; title: string; isFinal: boolean }
+  winner: BakerRef | null
   starBaker: BakerRef | null
   starBakerHandshake: boolean
   eliminated: BakerRef | null
@@ -76,7 +79,7 @@ interface Recap {
   players: { userId: string; name: string | null; points: number; reason: string; picked: boolean }[]
 }
 
-type Picker = { kind: 'weekly'; tab: 'sb' | 'el' } | { kind: 'finalists' } | null
+type Picker = { kind: 'weekly'; tab: 'sb' | 'el' } | { kind: 'winner' } | { kind: 'finalists' } | null
 
 async function getJson<T>(url: string): Promise<T | null> {
   const res = await fetch(url)
@@ -234,8 +237,10 @@ export default function Dashboard() {
   const weekly = myPicks.filter(p => p.episodeId && p.episodeId === episode?.id)
   const myStarBaker = weekly.find(p => p.pickType === 'STAR_BAKER')?.contestantId ?? null
   const myElimination = weekly.find(p => p.pickType === 'ELIMINATION')?.contestantId ?? null
+  const myWinner = weekly.find(p => p.pickType === 'WINNER')?.contestantId ?? null
+  const isFinal = !!episode?.isFinal
   // Saved picks are locked; only an admin can reset them
-  const weeklyLocked = !!myStarBaker && !!myElimination
+  const weeklyLocked = isFinal ? !!myWinner : !!myStarBaker && !!myElimination
 
   const starBakerUses = useMemo(() => {
     const uses = new Map<string, number>()
@@ -292,6 +297,18 @@ export default function Dashboard() {
       />
     )
   }
+  if (picker?.kind === 'winner' && episode) {
+    return (
+      <WinnerPicker
+        key={episode.id}
+        episode={episode}
+        bakers={bakers}
+        initialWinnerId={myWinner}
+        onClose={() => setPicker(null)}
+        onSave={id => submitPicks([{ contestantId: id, pickType: 'WINNER', episodeId: episode.id }])}
+      />
+    )
+  }
   if (viewing && seasonId) {
     return (
       <PlayerHistorySheet
@@ -324,15 +341,17 @@ export default function Dashboard() {
   const consensus = (() => {
     if (!allIn || everyonesPicks.length === 0) return null
     const tally = new Map<string, number>()
+    const type = isFinal ? 'WINNER' : 'STAR_BAKER'
+    const what = isFinal ? 'to win' : 'for Star Baker'
     for (const p of everyonesPicks) {
-      const sb = p.weeklyPicks.find(w => w.pickType === 'STAR_BAKER')?.contestant.name
+      const sb = p.weeklyPicks.find(w => w.pickType === type)?.contestant.name
       if (sb) tally.set(sb, (tally.get(sb) ?? 0) + 1)
     }
     const [top, n] = [...tally].sort((a, b) => b[1] - a[1])[0] ?? []
-    if (!top || n < 2) return <>Everyone’s gone their own way for Star Baker this week.</>
+    if (!top || n < 2) return <>Everyone’s gone their own way {isFinal ? 'for the winner' : 'for Star Baker this week'}.</>
     return (
       <>
-        <b className="text-ink">{top}</b> is the popular choice: {n} of {everyonesPicks.length} picked them for Star Baker.
+        <b className="text-ink">{top}</b> is the popular choice: {n} of {everyonesPicks.length} picked them {what}.
       </>
     )
   })()
@@ -361,13 +380,24 @@ export default function Dashboard() {
                   <p className={eyebrow}>
                     Episode {episode.episodeNumber} · {episode.title} · all {submission!.totalCount} picks in
                   </p>
-                  <h2 className="mb-2 mt-1.5 font-display text-[46px] leading-none md:text-[64px]">The ovens are on</h2>
-                  <p className="mb-6 text-[17px] text-ink-muted md:text-lg">Here’s who everyone’s backing this week.</p>
+                  <h2 className="mb-2 mt-1.5 font-display text-[46px] leading-none md:text-[64px]">
+                    {isFinal ? 'One last bake' : 'The ovens are on'}
+                  </h2>
+                  <p className="mb-6 text-[17px] text-ink-muted md:text-lg">
+                    {isFinal ? 'Here’s who everyone thinks will win.' : 'Here’s who everyone’s backing this week.'}
+                  </p>
                   <div className={`grid gap-3.5 sm:grid-cols-2 ${everyonesPicks.length > 4 ? 'md:grid-cols-3' : ''}`}>
                     {everyonesPicks.map(p => {
                       const sb = p.weeklyPicks.find(w => w.pickType === 'STAR_BAKER')?.contestant
                       const el = p.weeklyPicks.find(w => w.pickType === 'ELIMINATION')?.contestant
+                      const win = p.weeklyPicks.find(w => w.pickType === 'WINNER')?.contestant
                       const mine = p.user.id === myId
+                      const slots = isFinal
+                        ? [{ label: 'Winner', cls: 'text-rose-deep', b: win }]
+                        : [
+                            { label: 'Star Baker', cls: 'text-rose-deep', b: sb },
+                            { label: 'Going home', cls: 'text-blue-deep', b: el },
+                          ]
                       return (
                         <div key={p.user.id} className={`rounded-[20px] border-2 bg-card p-[18px] ${mine ? 'border-rose' : 'border-transparent'}`}>
                           <div className="flex items-center gap-2.5">
@@ -375,10 +405,7 @@ export default function Dashboard() {
                             <b className="text-lg">{mine ? 'You' : firstName(p.user.name)}</b>
                           </div>
                           <div className="mt-3.5 flex gap-2.5">
-                            {[
-                              { label: 'Star Baker', cls: 'text-rose-deep', b: sb },
-                              { label: 'Going home', cls: 'text-blue-deep', b: el },
-                            ].map(({ label, cls, b }) => (
+                            {slots.map(({ label, cls, b }) => (
                               <div key={label} className="min-w-0 flex-1">
                                 {/* eslint-disable-next-line @next/next/no-img-element */}
                                 <img src={b?.imageUrl ?? ''} alt="" className="block aspect-[4/3] w-full rounded-xl object-cover object-[50%_20%]" />
@@ -398,12 +425,19 @@ export default function Dashboard() {
               ) : (
                 <>
                   <div>
-                    <p className={eyebrow}>Episode {episode.episodeNumber}</p>
+                    <p className={eyebrow}>{isFinal ? `The final · Episode ${episode.episodeNumber}` : `Episode ${episode.episodeNumber}`}</p>
                     <h2 className="mt-1 font-display text-[46px] leading-none md:mt-1.5 md:text-[76px]">{episode.title}</h2>
                     <p className="mt-3 hidden max-w-[520px] text-[19px] text-ink-muted [text-wrap:pretty] md:block">
-                      Who’s going to rise, and whose bake is going to collapse? Get your picks in before the oven door shuts.
+                      {isFinal
+                        ? 'One cake stand, one pick. Choose who wins the series before the oven door shuts.'
+                        : 'Who’s going to rise, and whose bake is going to collapse? Get your picks in before the oven door shuts.'}
                     </p>
                   </div>
+                  {isFinal ? (
+                    <div className="grid grid-cols-1 md:max-w-[420px]">
+                      <PickCard label="Series winner" labelClass="text-rose-deep" baker={bakerById(myWinner)} locked={weeklyLocked} onPick={() => setPicker({ kind: 'winner' })} />
+                    </div>
+                  ) : (
                   <div className="grid grid-cols-2 gap-2.5 md:gap-5">
                     <PickCard label="Star Baker" labelClass="text-rose-deep" baker={bakerById(myStarBaker)} locked={weeklyLocked} onPick={() => setPicker({ kind: 'weekly', tab: 'sb' })} />
                     <PickCard
@@ -414,6 +448,7 @@ export default function Dashboard() {
                       onPick={() => setPicker({ kind: 'weekly', tab: myStarBaker ? 'el' : 'sb' })}
                     />
                   </div>
+                  )}
                   {submission && (
                     <div className="flex items-center gap-3.5 text-[15px] text-ink-muted md:text-base">
                       {submitted.length > 0 && (
@@ -428,14 +463,14 @@ export default function Dashboard() {
                           {submission.submittedCount} of {submission.totalCount}
                         </b>{' '}
                         in the tent. {waitingOn.length > 0 && <>Still waiting on {listNames(waitingOn)}.</>}
-                        {weeklyLocked && <> Your picks are locked in.</>}
+                        {weeklyLocked && <> {isFinal ? 'Your winner pick is locked in.' : 'Your picks are locked in.'}</>}
                       </span>
                     </div>
                   )}
                 </>
               )}
 
-              {finalists.length < 3 && (
+              {finalists.length < 3 && !isFinal && (
                 <div className="flex items-center justify-between gap-4 rounded-[20px] bg-oat p-[18px] md:rounded-3xl md:p-7">
                   <div>
                     <p className="text-xs font-bold uppercase tracking-[.1em] text-rose-deep md:text-[13px]">Once a series</p>
@@ -501,10 +536,15 @@ export default function Dashboard() {
             {recap && (
               <div className="rounded-[20px] bg-oat p-[18px] md:rounded-3xl md:p-7">
                 <p className="text-xs font-bold uppercase tracking-[.1em] text-rose-deep md:text-[13px]">
-                  Last week · {recap.episode.title}
+                  {recap.episode.isFinal ? 'The final' : 'Last week'} · {recap.episode.title}
                 </p>
                 <h3 className="mb-[18px] mt-1 hidden font-display text-[34px] md:block">The verdict from the tent</h3>
                 <div className="mt-2.5 flex flex-wrap gap-2.5 md:mb-5 md:mt-0 md:gap-4">
+                  {recap.winner && (
+                    <BakerChip baker={recap.winner}>
+                      🏆 <b>{recap.winner.name}</b> won the series
+                    </BakerChip>
+                  )}
                   {recap.starBaker && (
                     <BakerChip baker={recap.starBaker}>
                       <b>{recap.starBaker.name}</b> Star Baker{recap.starBakerHandshake && ' + handshake'}

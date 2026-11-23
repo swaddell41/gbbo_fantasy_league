@@ -34,7 +34,7 @@ export async function POST(request: NextRequest) {
       where: {
         episodeId: episodeId,
         pickType: {
-          in: ['STAR_BAKER', 'ELIMINATION']
+          in: ['STAR_BAKER', 'ELIMINATION', 'WINNER']
         }
       },
       include: {
@@ -52,7 +52,7 @@ export async function POST(request: NextRequest) {
     })
 
     // Group picks by user
-    const picksByUser = new Map<string, { name: string; starBaker?: string; elimination?: string }>()
+    const picksByUser = new Map<string, { name: string; starBaker?: string; elimination?: string; winner?: string }>()
     
     picks.forEach(pick => {
       if (!picksByUser.has(pick.userId)) {
@@ -64,6 +64,8 @@ export async function POST(request: NextRequest) {
         userPicks.starBaker = pick.contestant.name
       } else if (pick.pickType === 'ELIMINATION') {
         userPicks.elimination = pick.contestant.name
+      } else if (pick.pickType === 'WINNER') {
+        userPicks.winner = pick.contestant.name
       }
     })
 
@@ -73,8 +75,12 @@ export async function POST(request: NextRequest) {
 
     picksByUser.forEach((userPicks, userId) => {
       message += `*${userPicks.name}:*\n`
-      message += `⭐ Star Baker: ${userPicks.starBaker || 'Not picked'}\n`
-      message += `❌ Elimination: ${userPicks.elimination || 'Not picked'}\n\n`
+      if (episode.isFinal) {
+        message += `🏆 Winner: ${userPicks.winner || 'Not picked'}\n\n`
+      } else {
+        message += `⭐ Star Baker: ${userPicks.starBaker || 'Not picked'}\n`
+        message += `❌ Elimination: ${userPicks.elimination || 'Not picked'}\n\n`
+      }
     })
 
     message += `Good luck everyone! 🍰✨`

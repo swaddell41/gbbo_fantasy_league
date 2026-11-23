@@ -23,6 +23,7 @@ export async function GET(request: NextRequest) {
         starBaker: true,
         eliminated: true,
         technicalChallengeWinner: true,
+        winner: true,
         handshakes: {
           include: {
             contestant: true
@@ -51,7 +52,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { title, episodeNumber, seasonId, airDate, isActive } = await request.json()
+    const { title, episodeNumber, seasonId, airDate, isActive, isFinal } = await request.json()
 
     if (!title || !episodeNumber || !seasonId || !airDate) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -72,7 +73,8 @@ export async function POST(request: NextRequest) {
         episodeNumber: parseInt(episodeNumber),
         seasonId,
         airDate: new Date(airDate),
-        isActive: isActive || false
+        isActive: isActive || false,
+        isFinal: isFinal || false
       }
     })
 
@@ -90,7 +92,7 @@ export async function PUT(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { episodeId, title, episodeNumber, seasonId, airDate, isActive } = await request.json()
+    const { episodeId, title, episodeNumber, seasonId, airDate, isActive, isFinal } = await request.json()
 
     if (!episodeId || !title || !episodeNumber || !seasonId || !airDate) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 })
@@ -102,7 +104,8 @@ export async function PUT(request: NextRequest) {
         title,
         episodeNumber: parseInt(episodeNumber),
         airDate: new Date(airDate),
-        isActive: isActive || false
+        isActive: isActive || false,
+        isFinal: isFinal || false
       }
     })
 

@@ -16,6 +16,7 @@ interface Episode {
   title: string
   episodeNumber: number
   isActive: boolean
+  isFinal: boolean
 }
 
 interface PlayerPicks {
@@ -144,8 +145,14 @@ export default function AdminPicksPage() {
               <thead className="text-left text-xs uppercase tracking-wider text-ink-faint">
                 <tr>
                   <th className="py-2">Player</th>
-                  <th className="py-2">Star Baker</th>
-                  <th className="py-2">Going home</th>
+                  {episodes.find(e => e.id === episodeId)?.isFinal ? (
+                    <th className="py-2" colSpan={2}>Winner</th>
+                  ) : (
+                    <>
+                      <th className="py-2">Star Baker</th>
+                      <th className="py-2">Going home</th>
+                    </>
+                  )}
                   <th className="py-2" />
                 </tr>
               </thead>
@@ -153,8 +160,14 @@ export default function AdminPicksPage() {
                 {weekly.map(p => (
                   <tr key={p.user.id}>
                     <td className="py-3 font-medium">{p.user.name}</td>
-                    <td className="py-3">{pickName(p, 'STAR_BAKER')}</td>
-                    <td className="py-3">{pickName(p, 'ELIMINATION')}</td>
+                    {episodes.find(e => e.id === episodeId)?.isFinal ? (
+                      <td className="py-3" colSpan={2}>{pickName(p, 'WINNER')}</td>
+                    ) : (
+                      <>
+                        <td className="py-3">{pickName(p, 'STAR_BAKER')}</td>
+                        <td className="py-3">{pickName(p, 'ELIMINATION')}</td>
+                      </>
+                    )}
                     <td className="py-3 text-right">
                       {p.weeklyPicks.length > 0 && (
                         <button onClick={() => reset(p, 'weekly')} className="text-rose-deep hover:text-rose-deep font-medium">

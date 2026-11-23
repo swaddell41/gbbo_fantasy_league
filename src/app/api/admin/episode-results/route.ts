@@ -10,9 +10,32 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { episodeId, starBakerId, eliminatedId } = await request.json()
+    const { episodeId, starBakerId, eliminatedId, winnerId } = await request.json()
 
-    if (!episodeId || !starBakerId || !eliminatedId) {
+    if (!episodeId) {
+      return NextResponse.json({ error: 'Episode ID is required' }, { status: 400 })
+    }
+
+    const target = await prisma.episode.findUnique({ where: { id: episodeId }, select: { isFinal: true } })
+    if (!target) {
+      return NextResponse.json({ error: 'Episode not found' }, { status: 404 })
+    }
+
+    // The final's only result is the series winner
+    if (target.isFinal) {
+      if (!winnerId) {
+        return NextResponse.json({ error: 'Pick the series winner' }, { status: 400 })
+      }
+      const episode = await prisma.episode.update({
+        where: { id: episodeId },
+        data: { winnerId, starBakerId: null, eliminatedId: null, isCompleted: true },
+        include: { winner: true }
+      })
+      await recalculateEliminationStatus(episode.seasonId)
+      return NextResponse.json(episode)
+    }
+
+    if (!starBakerId || !eliminatedId) {
       return NextResponse.json({ error: 'Episode ID, Star Baker ID, and Eliminated ID are required' }, { status: 400 })
     }
 
