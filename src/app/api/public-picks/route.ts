@@ -60,7 +60,7 @@ export async function GET(request: NextRequest) {
             contestant: pick.contestant
           })),
         weeklyPicks: userPicks
-          .filter(pick => pick.pickType === 'STAR_BAKER' || pick.pickType === 'ELIMINATION')
+          .filter(pick => pick.pickType !== 'FINALIST')
           .map(pick => ({
             id: pick.id,
             episodeId: pick.episodeId,

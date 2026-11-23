@@ -4,6 +4,7 @@ import {
   scoreEliminationPick,
   scoreSeason,
   scoreStarBakerPick,
+  scoreWinnerPick,
   type ScoringEpisode,
   type ScoringPick,
   type SeasonScores,
@@ -30,6 +31,8 @@ async function loadSeason(seasonId: string) {
         starBakerId: true,
         eliminatedId: true,
         technicalChallengeWinnerId: true,
+        isFinal: true,
+        winnerId: true,
         handshakes: { select: { contestantId: true } },
         soggyBottoms: { select: { contestantId: true } },
       },
@@ -103,7 +106,7 @@ export async function getLeaderboard(seasonId: string) {
     .sort((a, b) => b.totalScore - a.totalScore)
     .map(entry => {
       const user = usersById.get(entry.userId)
-      const correct = entry.correctStarBaker + entry.correctElimination
+      const correct = entry.correctStarBaker + entry.correctElimination + entry.correctWinner
       const rank = ranks.get(entry.userId)!
       return {
         ...entry,
@@ -141,6 +144,11 @@ function recapReason(
   ep: SeasonEpisode,
   name: (id: string) => string
 ) {
+  if (ep.isFinal) {
+    const winPick = sbPick
+    if (!winPick) return 'No pick'
+    return scoreWinnerPick(winPick, ep).correct ? `Called it: ${name(winPick)} won` : `Backed ${name(winPick)}`
+  }
   if (!sbPick && !elPick) return 'No picks'
   const parts: string[] = []
   if (sbPick) {
@@ -173,7 +181,8 @@ export async function getRecap(seasonId: string) {
   const players = season.users
     .map(u => {
       const mine = epPicks.filter(p => p.userId === u.id)
-      const sb = mine.find(p => p.pickType === 'STAR_BAKER')?.contestantId ?? null
+      // In the final the winner pick stands in for the Star Baker pick
+      const sb = mine.find(p => p.pickType === (ep.isFinal ? 'WINNER' : 'STAR_BAKER'))?.contestantId ?? null
       const el = mine.find(p => p.pickType === 'ELIMINATION')?.contestantId ?? null
       return {
         userId: u.id,
@@ -186,7 +195,8 @@ export async function getRecap(seasonId: string) {
     .sort((a, b) => b.points - a.points)
 
   return {
-    episode: { episodeNumber: ep.episodeNumber, title: ep.title },
+    episode: { episodeNumber: ep.episodeNumber, title: ep.title, isFinal: ep.isFinal },
+    winner: ep.isFinal ? baker(ep.winnerId) : null,
     starBaker: baker(ep.starBakerId),
     starBakerHandshake: !!ep.starBakerId && ep.handshakeContestantIds.includes(ep.starBakerId),
     eliminated: baker(ep.eliminatedId),
@@ -219,9 +229,17 @@ export async function getPlayerHistory(seasonId: string, userId: string) {
     .map(e => {
       const sb = withPoints(mine.find(p => p.episodeId === e.id && p.pickType === 'STAR_BAKER'))
       const el = withPoints(mine.find(p => p.episodeId === e.id && p.pickType === 'ELIMINATION'))
-      return { episodeNumber: e.episodeNumber, title: e.title, starBaker: sb, goingHome: el, total: (sb?.points ?? 0) + (el?.points ?? 0) }
+      const win = withPoints(mine.find(p => p.episodeId === e.id && p.pickType === 'WINNER'))
+      return {
+        episodeNumber: e.episodeNumber,
+        title: e.title,
+        starBaker: sb,
+        goingHome: el,
+        winner: win,
+        total: (sb?.points ?? 0) + (el?.points ?? 0) + (win?.points ?? 0),
+      }
     })
-    .filter(r => r.starBaker || r.goingHome)
+    .filter(r => r.starBaker || r.goingHome || r.winner)
     .reverse()
 
   const starBakerUses = new Map<string, number>()
@@ -235,6 +253,7 @@ export async function getPlayerHistory(seasonId: string, userId: string) {
     totalScore: breakdown.totalScore,
     starBakerCalls: { right: breakdown.correctStarBaker, of: rows.filter(r => r.starBaker).length },
     eliminationCalls: { right: breakdown.correctElimination, of: rows.filter(r => r.goingHome).length },
+    winnerCall: rows.find(r => r.winner)?.winner ?? null,
     finalists: mine.filter(p => p.pickType === 'FINALIST').map(p => baker(p.contestantId)!).filter(Boolean),
     // Bakers this player has already used for both of their Star Baker picks
     starBakerMaxedOut: [...starBakerUses].filter(([, n]) => n >= 2).map(([id]) => baker(id)!.name),

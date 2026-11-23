@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
 
 interface PickInput {
   contestantId: string
-  pickType: 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION'
+  pickType: 'FINALIST' | 'STAR_BAKER' | 'ELIMINATION' | 'WINNER'
   episodeId?: string | null
 }
 
@@ -71,19 +71,42 @@ export async function POST(request: NextRequest) {
     const userId = session.user.id
 
     // Picks lock once submitted: finalists once all three are in, weekly picks
-    // once both Star Baker and going-home are in. Only an admin can reset them.
+    // once both Star Baker and going-home are in, the final once the winner
+    // pick is in. Only an admin can reset them.
     const isFinalists = picks[0]?.pickType === 'FINALIST'
     const episodeId = isFinalists ? null : picks[0]?.episodeId
     if (!isFinalists && !episodeId) {
       return NextResponse.json({ error: 'Episode ID is required for weekly picks' }, { status: 400 })
     }
+
+    let isWinnerPick = false
+    if (episodeId) {
+      const episode = await prisma.episode.findUnique({ where: { id: episodeId }, select: { seasonId: true, isFinal: true } })
+      if (!episode || episode.seasonId !== seasonId) {
+        return NextResponse.json({ error: 'Episode not found' }, { status: 404 })
+      }
+      // The final takes exactly one pick: the series winner
+      isWinnerPick = episode.isFinal
+      const valid = isWinnerPick
+        ? picks.length === 1 && picks[0].pickType === 'WINNER'
+        : picks.every(p => p.pickType === 'STAR_BAKER' || p.pickType === 'ELIMINATION')
+      if (!valid) {
+        return NextResponse.json(
+          { error: isWinnerPick ? 'The final only takes a winner pick' : 'Weekly picks are Star Baker and going home' },
+          { status: 400 }
+        )
+      }
+    }
+
     const scope = isFinalists
       ? { userId, seasonId, pickType: 'FINALIST' as const }
-      : { userId, seasonId, episodeId, pickType: { in: ['STAR_BAKER' as const, 'ELIMINATION' as const] } }
+      : isWinnerPick
+        ? { userId, seasonId, episodeId, pickType: 'WINNER' as const }
+        : { userId, seasonId, episodeId, pickType: { in: ['STAR_BAKER' as const, 'ELIMINATION' as const] } }
 
     const createdPicks = await prisma.$transaction(async tx => {
       const existing = await tx.pick.count({ where: scope })
-      if (existing >= (isFinalists ? 3 : 2)) return null
+      if (existing >= (isFinalists ? 3 : isWinnerPick ? 1 : 2)) return null
 
       // Clear any incomplete set before saving the full one
       await tx.pick.deleteMany({ where: scope })

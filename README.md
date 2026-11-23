@@ -76,6 +76,8 @@ A fantasy league app for The Great British Bake Off where friends can pick their
    - Go to Admin Dashboard → Episode Management
    - Create weekly episodes for the season
    - Mark episodes as completed and set results
+   - For the final, tick **"This is the final"** on the episode. Players then
+     pick only the series winner, and the results panel asks only for the winner
 
 4. **Manage Users:**
    - Go to Admin Dashboard → User Management
@@ -112,6 +114,11 @@ results on request, so editing or re-saving a result can't double-count.
 
 ### Finalist Picks
 - **Each finalist pick who makes the final**: +3 — admins mark finalists on the Scoring page
+
+### The Final
+- An episode marked as the final takes a single pick: who wins the series
+- **Winner pick wins the series**: +3 (`WINNER_CORRECT` in `src/lib/scoring.ts`)
+- It counts toward the season total as soon as the admin saves the winner
 
 ## Live Updates
 

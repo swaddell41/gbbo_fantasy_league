@@ -44,7 +44,7 @@ export async function GET(request: NextRequest) {
       where: {
         episodeId: episodeId,
         pickType: {
-          in: ['STAR_BAKER', 'ELIMINATION']
+          in: ['STAR_BAKER', 'ELIMINATION', 'WINNER']
         }
       },
       select: {
@@ -53,7 +53,8 @@ export async function GET(request: NextRequest) {
       }
     })
 
-    // Check which users have submitted both Star Baker and Elimination picks
+    // A user is in once they've made every pick this episode needs:
+    // the winner in the final, otherwise both Star Baker and Elimination
     const usersWithCompletePicks = new Set<string>()
     const userPickCounts = new Map<string, Set<string>>()
 
@@ -65,7 +66,10 @@ export async function GET(request: NextRequest) {
     })
 
     userPickCounts.forEach((pickTypes, userId) => {
-      if (pickTypes.has('STAR_BAKER') && pickTypes.has('ELIMINATION')) {
+      const complete = episode.isFinal
+        ? pickTypes.has('WINNER')
+        : pickTypes.has('STAR_BAKER') && pickTypes.has('ELIMINATION')
+      if (complete) {
         usersWithCompletePicks.add(userId)
       }
     })

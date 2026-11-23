@@ -18,11 +18,14 @@ export interface History {
   eliminationCalls: { right: number; of: number }
   finalists: BakerRef[]
   starBakerMaxedOut: string[]
+  winnerCall?: (BakerRef & { points: number }) | null
   rows: {
     episodeNumber: number
     title: string
     starBaker: (BakerRef & { points: number }) | null
     goingHome: (BakerRef & { points: number }) | null
+    // Only set for the final, where it's the one pick
+    winner?: (BakerRef & { points: number }) | null
     total: number
   }[]
 }
@@ -46,17 +49,26 @@ export function HistoryRows({ rows }: { rows: History['rows'] }) {
           <span className="text-ink-muted">
             Ep {h.episodeNumber} · {h.title.replace(/ Week$/, '')}
           </span>
-          {[h.starBaker, h.goingHome].map((b, k) => (
-            <span key={k} className="flex items-center gap-2">
-              {b && (
-                <>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={b.imageUrl ?? ''} alt="" className="h-8 w-8 rounded-full object-cover" />
-                  {b.name} <b className={pointsClass(b.points)}>{signed(b.points)}</b>
-                </>
-              )}
+          {h.winner ? (
+            // The final has a single winner pick, so it spans both pick columns
+            <span className="col-span-2 flex items-center gap-2">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={h.winner.imageUrl ?? ''} alt="" className="h-8 w-8 rounded-full object-cover" />
+              🏆 {h.winner.name} to win <b className={pointsClass(h.winner.points)}>{signed(h.winner.points)}</b>
             </span>
-          ))}
+          ) : (
+            [h.starBaker, h.goingHome].map((b, k) => (
+              <span key={k} className="flex items-center gap-2">
+                {b && (
+                  <>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={b.imageUrl ?? ''} alt="" className="h-8 w-8 rounded-full object-cover" />
+                    {b.name} <b className={pointsClass(b.points)}>{signed(b.points)}</b>
+                  </>
+                )}
+              </span>
+            ))
+          )}
           <span className="text-right font-display text-[22px]">{signed(h.total)}</span>
         </div>
       ))}

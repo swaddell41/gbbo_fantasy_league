@@ -26,6 +26,9 @@ interface Episode {
   airDate: string
   isActive: boolean
   isCompleted: boolean
+  isFinal: boolean
+  winnerId?: string
+  winner?: Contestant
   starBakerId?: string
   eliminatedId?: string
   technicalChallengeWinnerId?: string
@@ -51,9 +54,11 @@ export default function ManageEpisodes() {
     title: '',
     episodeNumber: 1,
     airDate: '',
-    isActive: false
+    isActive: false,
+    isFinal: false
   })
   const [results, setResults] = useState<{
+    winnerId?: string
     starBakerId?: string
     eliminatedId?: string
     technicalChallengeWinnerId?: string
@@ -95,6 +100,7 @@ export default function ManageEpisodes() {
       })
       
       setResults({
+        winnerId: selectedEpisode.winnerId || undefined,
         starBakerId: selectedEpisode.starBakerId || undefined,
         eliminatedId: selectedEpisode.eliminatedId || undefined,
         technicalChallengeWinnerId: selectedEpisode.technicalChallengeWinnerId || undefined,
@@ -163,7 +169,7 @@ export default function ManageEpisodes() {
       })
 
       if (response.ok) {
-        setFormData({ title: '', episodeNumber: 1, airDate: '', isActive: false })
+        setFormData({ title: '', episodeNumber: 1, airDate: '', isActive: false, isFinal: false })
         setShowForm(false)
         setEditingEpisode(null)
         fetchEpisodes(selectedSeason.id)
@@ -184,14 +190,15 @@ export default function ManageEpisodes() {
       title: episode.title,
       episodeNumber: episode.episodeNumber,
       airDate: new Date(episode.airDate).toISOString().slice(0, 16), // Format for datetime-local
-      isActive: episode.isActive
+      isActive: episode.isActive,
+      isFinal: episode.isFinal
     })
     setShowForm(true)
   }
 
   const cancelEdit = () => {
     setEditingEpisode(null)
-    setFormData({ title: '', episodeNumber: 1, airDate: '', isActive: false })
+    setFormData({ title: '', episodeNumber: 1, airDate: '', isActive: false, isFinal: false })
     setShowForm(false)
   }
 
@@ -281,7 +288,7 @@ export default function ManageEpisodes() {
     }
   }
 
-  const handleResultChange = (type: 'starBakerId' | 'eliminatedId' | 'technicalChallengeWinnerId', contestantId: string) => {
+  const handleResultChange = (type: 'winnerId' | 'starBakerId' | 'eliminatedId' | 'technicalChallengeWinnerId', contestantId: string) => {
     setResults(prev => ({
       ...prev,
       [type]: prev[type] === contestantId ? undefined : contestantId
@@ -333,6 +340,32 @@ export default function ManageEpisodes() {
 
   const saveResults = async () => {
     if (!selectedEpisode) return
+
+    // The final has one result: the series winner. No Star Baker, elimination or bonuses.
+    if (selectedEpisode.isFinal) {
+      if (!results.winnerId) {
+        alert('Pick the series winner first')
+        return
+      }
+      try {
+        const response = await fetch('/api/admin/episode-results', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ episodeId: selectedEpisode.id, winnerId: results.winnerId })
+        })
+        if (!response.ok) {
+          const error = await response.json()
+          alert(`Error saving the winner: ${error.error}`)
+          return
+        }
+        fetchEpisodes(selectedSeason!.id)
+        alert('Winner saved. The leaderboard now includes the final.')
+      } catch (error) {
+        console.error('Error saving winner:', error)
+        alert('Error saving the winner')
+      }
+      return
+    }
 
     try {
       // Save main results (Star Baker and Elimination)
@@ -508,7 +541,10 @@ export default function ManageEpisodes() {
                     <div key={episode.id} className="p-4 border rounded-2xl">
                       <div className="flex justify-between items-start mb-2">
                         <div>
-                          <h3 className="font-semibold text-ink">Episode {episode.episodeNumber}: {episode.title}</h3>
+                          <h3 className="font-semibold text-ink">
+                            Episode {episode.episodeNumber}: {episode.title}
+                            {episode.isFinal && <span className="ml-2 rounded-full bg-rose px-2 py-0.5 text-xs font-bold text-ink">🏆 Final</span>}
+                          </h3>
                           <p className="text-sm text-ink">
                             Air Date: {new Date(episode.airDate).toLocaleDateString()}
                           </p>
@@ -517,6 +553,7 @@ export default function ManageEpisodes() {
                           </p>
                           <p className="text-xs text-ink mt-1">
                             {episode.isCompleted ? '✅ Completed' : '⏳ Pending'}
+                            {episode.isFinal && episode.winner && <> · Winner: {episode.winner.name}</>}
                           </p>
                         </div>
                         <div className="flex gap-1">
@@ -581,6 +618,42 @@ export default function ManageEpisodes() {
                     </button>
                   </div>
 
+                  {selectedEpisode.isFinal ? (
+                    <div className="mb-6">
+                      <h3 className="font-display font-normal text-2xl text-ink mb-1">Series winner</h3>
+                      <p className="text-sm text-ink mb-3">Players who picked the winner get the final points. Nothing else is scored in the final.</p>
+                      <div className="grid grid-cols-2 gap-2">
+                        {contestants
+                          .filter(c => !c.isEliminated || c.id === results.winnerId)
+                          .map((contestant) => {
+                          const isSelected = results.winnerId === contestant.id
+                          return (
+                            <button
+                              key={`winner-${contestant.id}`}
+                              onClick={() => handleResultChange('winnerId', contestant.id)}
+                              className={`p-2 rounded-2xl border-2 transition-colors text-left ${
+                                isSelected ? 'border-rose bg-oat' : 'border-input hover:border-line'
+                              }`}
+                            >
+                              <div className="flex items-center gap-2">
+                                {contestant.imageUrl && (
+                                  <img
+                                    src={contestant.imageUrl}
+                                    alt={contestant.name}
+                                    className="w-6 h-6 rounded-full object-cover"
+                                  />
+                                )}
+                                <span className="font-medium text-ink">
+                                  {contestant.name}
+                                  {isSelected && ' 🏆'}
+                                </span>
+                              </div>
+                            </button>
+                          )
+                        })}
+                      </div>
+                    </div>
+                  ) : (<>
                   {/* Star Baker Selection */}
                   <div className="mb-6">
                     <h3 className="font-display font-normal text-2xl text-ink mb-3">Star Baker</h3>
@@ -825,11 +898,13 @@ export default function ManageEpisodes() {
                     </div>
                   </div>
 
+                  </>)}
+
                   <button
                     onClick={saveResults}
                     className="w-full bg-ink text-cream font-bold hover:bg-[#3d342e] px-6 py-3 rounded-full transition-colors duration-200"
                   >
-                    Save All Results
+                    {selectedEpisode.isFinal ? 'Save Winner' : 'Save All Results'}
                   </button>
                 </div>
               ) : showForm ? (
@@ -888,6 +963,19 @@ export default function ManageEpisodes() {
                       />
                       <label htmlFor="isActive" className="ml-2 block text-sm text-ink-muted">
                         Active (users can make picks for this episode)
+                      </label>
+                    </div>
+
+                    <div className="flex items-start">
+                      <input
+                        type="checkbox"
+                        id="isFinal"
+                        checked={formData.isFinal}
+                        onChange={(e) => setFormData({ ...formData, isFinal: e.target.checked })}
+                        className="mt-0.5 h-4 w-4 text-blue-deep focus:ring-rose border-input rounded"
+                      />
+                      <label htmlFor="isFinal" className="ml-2 block text-sm text-ink-muted">
+                        🏆 This is the final (players only pick the series winner)
                       </label>
                     </div>
 

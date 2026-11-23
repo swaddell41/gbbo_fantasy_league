@@ -20,7 +20,7 @@ export async function DELETE(request: NextRequest) {
     const { count } = await prisma.pick.deleteMany({
       where: finalists
         ? { userId, seasonId, pickType: 'FINALIST' }
-        : { userId, seasonId, episodeId, pickType: { in: ['STAR_BAKER', 'ELIMINATION'] } },
+        : { userId, seasonId, episodeId, pickType: { in: ['STAR_BAKER', 'ELIMINATION', 'WINNER'] } },
     })
 
     return NextResponse.json({ deleted: count })
