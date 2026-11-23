@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { seasonDeleteBlocker } from '@/lib/seasonData'
 
 export async function GET() {
   try {
@@ -91,6 +92,11 @@ export async function DELETE(request: NextRequest) {
         { error: 'Season ID is required' },
         { status: 400 }
       )
+    }
+
+    const blocker = await seasonDeleteBlocker(seasonId)
+    if (blocker) {
+      return NextResponse.json({ error: blocker }, { status: 409 })
     }
 
     // Delete all contestants first (cascade delete)
