@@ -113,7 +113,7 @@ results on request, so editing or re-saving a result can't double-count.
 - **Soggy bottom** for your Star Baker pick (win or not): -1 each
 
 ### Finalist Picks
-- **Each finalist pick who makes the final**: +3 — admins mark finalists on the Scoring page
+- **Each finalist pick who makes the final**: +3 — counted on the leaderboard as soon as the final episode is active, using the bakers not yet eliminated. Admins can override the finalists on the Scoring page
 
 ### The Final
 - An episode marked as the final takes a single pick: who wins the series

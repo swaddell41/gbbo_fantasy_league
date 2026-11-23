@@ -128,6 +128,20 @@ export function scoreWinnerPick(contestantId: string, ep: ScoringEpisode) {
   return { points: correct ? SCORING_RULES.WINNER_CORRECT : 0, correct }
 }
 
+// Which bakers count as finalists for scoring finalist picks. Bakers an admin
+// marked on the Scoring page win; otherwise, once the final is open (active
+// or done), everyone still in is a finalist. Before that, nobody is.
+export function finalistIdsFor(
+  contestants: { id: string; isEliminated: boolean; isFinalist: boolean }[],
+  episodes: { isFinal: boolean; isActive: boolean; isCompleted: boolean }[],
+): Set<string> {
+  const marked = contestants.filter(c => c.isFinalist)
+  if (marked.length > 0) return new Set(marked.map(c => c.id))
+  const finalOpen = episodes.some(e => e.isFinal && (e.isActive || e.isCompleted))
+  if (!finalOpen) return new Set()
+  return new Set(contestants.filter(c => !c.isEliminated).map(c => c.id))
+}
+
 export function scoreSeason(
   picks: ScoringPick[],
   episodes: ScoringEpisode[],

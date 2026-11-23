@@ -136,7 +136,7 @@ export default function ScoringPage() {
             <div className="bg-card rounded-2xl p-6">
               <h2 className="font-display font-normal text-[28px] text-ink">Finalists</h2>
               <p className="text-ink-muted text-sm mt-1 mb-4">
-                Mark the bakers who reach the final. Each matching finalist pick scores immediately.
+                Once the final is open, the bakers still in count as finalists automatically. Mark bakers here only to override that.
               </p>
               <div className="flex flex-wrap gap-2">
                 {contestants.map(c => (

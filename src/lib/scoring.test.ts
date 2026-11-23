@@ -1,6 +1,6 @@
 import { test } from 'node:test'
 import assert from 'node:assert/strict'
-import { scoreSeason, type ScoringEpisode, type ScoringPick } from './scoring.ts'
+import { finalistIdsFor, scoreSeason, type ScoringEpisode, type ScoringPick } from './scoring.ts'
 
 const episode = (overrides: Partial<ScoringEpisode> = {}): ScoringEpisode => ({
   id: 'ep1',
@@ -81,6 +81,29 @@ test('finalists score only once finalists are marked', () => {
   const u = total(picks, [], ['a', 'c', 'z'])
   assert.equal(u.finalistScore, 6)
   assert.equal(u.totalScore, 6)
+})
+
+test('finalists come from bakers still in once the final is open', () => {
+  const bakers = [
+    { id: 'a', isEliminated: false, isFinalist: false },
+    { id: 'b', isEliminated: false, isFinalist: false },
+    { id: 'c', isEliminated: false, isFinalist: false },
+    { id: 'd', isEliminated: true, isFinalist: false },
+  ]
+  const final = (o: { isActive?: boolean; isCompleted?: boolean } = {}) =>
+    ({ isFinal: true, isActive: false, isCompleted: false, ...o })
+  const week = { isFinal: false, isActive: true, isCompleted: false }
+
+  assert.deepEqual(finalistIdsFor(bakers, [week]), new Set())
+  assert.deepEqual(finalistIdsFor(bakers, [final()]), new Set())
+  assert.deepEqual(finalistIdsFor(bakers, [final({ isActive: true })]), new Set(['a', 'b', 'c']))
+  assert.deepEqual(finalistIdsFor(bakers, [final({ isCompleted: true })]), new Set(['a', 'b', 'c']))
+  // Admin marks override the automatic list
+  const marked = bakers.map(b => ({ ...b, isFinalist: b.id === 'a' }))
+  assert.deepEqual(finalistIdsFor(marked, [final({ isActive: true })]), new Set(['a']))
+
+  const picks = [pick('FINALIST', 'a'), pick('FINALIST', 'b'), pick('FINALIST', 'd')]
+  assert.equal(total(picks, [], [...finalistIdsFor(bakers, [final({ isActive: true })])]).finalistScore, 6)
 })
 
 test('scoring is idempotent — same inputs, same totals', () => {
