@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma'
 import {
   emptyBreakdown,
+  finalistIdsFor,
   scoreEliminationPick,
   scoreSeason,
   scoreStarBakerPick,
@@ -54,7 +55,7 @@ async function loadSeason(seasonId: string) {
     handshakeContestantIds: handshakes.map(h => h.contestantId),
     soggyBottomContestantIds: soggyBottoms.map(s => s.contestantId),
   }))
-  const finalistIds = new Set(contestants.filter(c => c.isFinalist).map(c => c.id))
+  const finalistIds = finalistIdsFor(contestants, seasonEpisodes)
 
   return { picks: picks as ScoringPick[], episodes: seasonEpisodes, contestants, users, finalistIds }
 }
